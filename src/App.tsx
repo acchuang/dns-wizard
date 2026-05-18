@@ -154,14 +154,14 @@ function App() {
           overflow: "hidden",
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            width: `${3 * 100}%`,
-            transform: `translateX(-${(state.step - 1) * (100 / 3)}%)`,
-            transition: "transform 0.3s ease",
-          }}
-        >
+          <div
+            style={{
+              display: "flex",
+              width: "300%",
+              transform: `translateX(-${(state.step - 1) * 100 / 3}%)`,
+              transition: "transform 0.3s ease",
+            }}
+          >
           <Step1_ChooseProfile
             onSelect={selectProfile}
             applied={state.applied}
