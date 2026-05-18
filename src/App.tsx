@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { WizardState, Profile, DnsProvider, ConfigResult } from "./types";
 import ProgressDots from "./components/ProgressDots";
@@ -21,6 +21,7 @@ const initialState: WizardState = {
 
 function App() {
   const [state, setState] = useState<WizardState>(initialState);
+  const benchmarkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const selectProfile = useCallback((profile: Profile) => {
     setState((prev) => ({ ...prev, selectedProfile: profile, step: 2 }));
@@ -47,15 +48,47 @@ function App() {
     if (!state.selectedProfile) return;
     setRunning(true);
     setError(null);
+
+    if (benchmarkTimeoutRef.current) {
+      clearTimeout(benchmarkTimeoutRef.current);
+    }
+    benchmarkTimeoutRef.current = setTimeout(() => {
+      setState((prev) => {
+        if (prev.isRunning) {
+          return { ...prev, error: "Benchmark timed out. Please try again.", isRunning: false };
+        }
+        return prev;
+      });
+    }, 30000);
+
     try {
+      console.log("[DNS Wizard] Starting benchmark for profile:", state.selectedProfile);
       const results = await invoke<DnsProvider[]>("run_benchmark", {
         profile: state.selectedProfile,
       });
+      console.log("[DNS Wizard] Benchmark results:", results);
+      if (benchmarkTimeoutRef.current) {
+        clearTimeout(benchmarkTimeoutRef.current);
+        benchmarkTimeoutRef.current = null;
+      }
       setBenchmarkResults(results);
     } catch (e) {
+      console.error("[DNS Wizard] Benchmark error:", e);
+      if (benchmarkTimeoutRef.current) {
+        clearTimeout(benchmarkTimeoutRef.current);
+        benchmarkTimeoutRef.current = null;
+      }
       setError(String(e));
     }
   }, [state.selectedProfile, setRunning, setError, setBenchmarkResults]);
+
+  useEffect(() => {
+    return () => {
+      if (benchmarkTimeoutRef.current) {
+        clearTimeout(benchmarkTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const selectResult = useCallback(
     (ip: string, secondaryIp: string) => {
