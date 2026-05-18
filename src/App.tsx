@@ -16,6 +16,7 @@ const initialState: WizardState = {
   applied: false,
   selectedIp: null,
   selectedSecondaryIp: null,
+  isApplying: false,
 };
 
 function App() {
@@ -63,11 +64,11 @@ function App() {
     []
   );
 
-  const applyDns = useCallback(async () => {
-    if (!state.selectedIp) return;
-    setError(null);
+  const authorizeApply = useCallback(async () => {
+    if (!state.selectedIp || state.isApplying) return;
+    setState((prev) => ({ ...prev, isApplying: true, error: null }));
     try {
-      const result = await invoke<ConfigResult>("apply_dns", {
+      const result = await invoke<ConfigResult>("execute_admin_apply", {
         primary: state.selectedIp,
         secondary: state.selectedSecondaryIp ?? "",
       });
@@ -76,28 +77,30 @@ function App() {
           ...prev,
           applied: true,
           appliedProfile: prev.selectedProfile,
+          isApplying: false,
         }));
       } else {
-        setError(result.message);
+        setState((prev) => ({ ...prev, error: result.message, isApplying: false }));
       }
     } catch (e) {
-      setError(String(e));
+      setState((prev) => ({ ...prev, error: String(e), isApplying: false }));
     }
-  }, [state.selectedIp, state.selectedSecondaryIp, state.selectedProfile]);
+  }, [state.selectedIp, state.selectedSecondaryIp, state.selectedProfile, state.isApplying]);
 
-  const restoreDns = useCallback(async () => {
-    setError(null);
+  const authorizeRestore = useCallback(async () => {
+    if (state.isApplying) return;
+    setState((prev) => ({ ...prev, isApplying: true, error: null }));
     try {
-      const result = await invoke<ConfigResult>("restore_dns");
+      const result = await invoke<ConfigResult>("execute_admin_restore");
       if (result.success) {
-        setState((prev) => ({ ...prev, applied: false }));
+        setState((prev) => ({ ...prev, applied: false, isApplying: false }));
       } else {
-        setError(result.message);
+        setState((prev) => ({ ...prev, error: result.message, isApplying: false }));
       }
     } catch (e) {
-      setError(String(e));
+      setState((prev) => ({ ...prev, error: String(e), isApplying: false }));
     }
-  }, []);
+  }, [state.isApplying]);
 
   const startOver = useCallback(() => {
     setState((prev) => ({
@@ -105,35 +108,6 @@ function App() {
       applied: prev.applied,
       appliedProfile: prev.appliedProfile,
     }));
-  }, []);
-
-  const authorizeApply = useCallback(async () => {
-    if (!state.selectedIp) return;
-    setError(null);
-    try {
-      await invoke("execute_admin_apply", {
-        primary: state.selectedIp,
-        secondary: state.selectedSecondaryIp ?? "",
-      });
-      setState((prev) => ({
-        ...prev,
-        applied: true,
-        error: null,
-        appliedProfile: prev.selectedProfile,
-      }));
-    } catch (e) {
-      setError(String(e));
-    }
-  }, [state.selectedIp, state.selectedSecondaryIp, state.selectedProfile]);
-
-  const authorizeRestore = useCallback(async () => {
-    setError(null);
-    try {
-      await invoke("execute_admin_restore");
-      setState((prev) => ({ ...prev, applied: false, error: null }));
-    } catch (e) {
-      setError(String(e));
-    }
   }, []);
 
   return (
@@ -171,12 +145,11 @@ function App() {
             selectedIp={state.selectedIp}
             error={state.error}
             applied={state.applied}
+            isApplying={state.isApplying}
             onSelect={selectResult}
-            onApply={applyDns}
-            onRestore={restoreDns}
-            onStartOver={startOver}
             onAuthorizeApply={authorizeApply}
             onAuthorizeRestore={authorizeRestore}
+            onStartOver={startOver}
           />
         </div>
       </div>

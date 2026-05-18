@@ -4,13 +4,13 @@ mod sys_config;
 
 use dns_bench::{benchmark_dns, DnsProvider};
 use profiles::{get_profile_providers, UserProfile};
-use sys_config::{detect_network_service, set_dns_macos, restore_dns_macos, ConfigResult};
+use sys_config::{detect_network_service, ConfigResult};
 
 #[tauri::command]
 async fn run_benchmark(profile: String) -> Result<Vec<DnsProvider>, String> {
     let profile_enum = match profile.as_str() {
         "Gamer" => UserProfile::Gamer,
-        "Parent" => UserProfile::Parent,
+        "Family" => UserProfile::Family,
         "Privacy" => UserProfile::Privacy,
         "AdBlock" => UserProfile::AdBlock,
         _ => UserProfile::Balanced,
@@ -22,30 +22,6 @@ async fn run_benchmark(profile: String) -> Result<Vec<DnsProvider>, String> {
 }
 
 #[tauri::command]
-fn apply_dns(primary: String, secondary: String) -> ConfigResult {
-    let service = match detect_network_service() {
-        Ok(s) => s,
-        Err(e) => return ConfigResult {
-            success: false,
-            message: e,
-        },
-    };
-    set_dns_macos(&service, &primary, &secondary)
-}
-
-#[tauri::command]
-fn restore_dns() -> ConfigResult {
-    let service = match detect_network_service() {
-        Ok(s) => s,
-        Err(e) => return ConfigResult {
-            success: false,
-            message: e,
-        },
-    };
-    restore_dns_macos(&service)
-}
-
-#[tauri::command]
 async fn execute_admin_apply(
     app: tauri::AppHandle<tauri::Wry>,
     primary: String,
@@ -54,10 +30,23 @@ async fn execute_admin_apply(
     use tauri_plugin_shell::ShellExt;
 
     let service = detect_network_service().map_err(|e| e)?;
+
+    let dns_args = if secondary.is_empty() {
+        format!("-setdnsservers {} {}", shell_escape(&service), shell_escape(&primary))
+    } else {
+        format!(
+            "-setdnsservers {} {} {}",
+            shell_escape(&service),
+            shell_escape(&primary),
+            shell_escape(&secondary)
+        )
+    };
+
     let script = format!(
-        "do shell script \"networksetup -setdnsservers {} {} {}\" with administrator privileges",
-        service, primary, secondary
+        "do shell script \"networksetup {}\" with administrator privileges",
+        dns_args
     );
+
     let output = app
         .shell()
         .command("osascript")
@@ -67,14 +56,24 @@ async fn execute_admin_apply(
         .map_err(|e| format!("Failed to execute osascript: {}", e))?;
 
     if output.status.success() {
+        let msg = if secondary.is_empty() {
+            format!("DNS updated to {}", primary)
+        } else {
+            format!("DNS updated to {} (primary) and {} (secondary)", primary, secondary)
+        };
         Ok(ConfigResult {
             success: true,
-            message: format!("DNS updated to {} and {}", primary, secondary),
+            message: msg,
         })
     } else {
+        let stderr = String::from_utf8_lossy(&output.stderr);
         Ok(ConfigResult {
             success: false,
-            message: "Authorization cancelled or failed.".to_string(),
+            message: if stderr.contains("User canceled") || stderr.contains("-128") {
+                "Authorization cancelled.".to_string()
+            } else {
+                format!("Failed to apply DNS: {}", stderr.trim())
+            },
         })
     }
 }
@@ -88,8 +87,9 @@ async fn execute_admin_restore(
     let service = detect_network_service().map_err(|e| e)?;
     let script = format!(
         "do shell script \"networksetup -setdnsservers {} empty\" with administrator privileges",
-        service
+        shell_escape(&service)
     );
+
     let output = app
         .shell()
         .command("osascript")
@@ -104,11 +104,30 @@ async fn execute_admin_restore(
             message: "DNS restored to automatic (DHCP)".to_string(),
         })
     } else {
+        let stderr = String::from_utf8_lossy(&output.stderr);
         Ok(ConfigResult {
             success: false,
-            message: "Authorization cancelled or failed.".to_string(),
+            message: if stderr.contains("User canceled") || stderr.contains("-128") {
+                "Authorization cancelled.".to_string()
+            } else {
+                format!("Failed to restore DNS: {}", stderr.trim())
+            },
         })
     }
+}
+
+fn shell_escape(s: &str) -> String {
+    let mut escaped = String::new();
+    for c in s.chars() {
+        match c {
+            '\\' | '"' | '$' | '`' => {
+                escaped.push('\\');
+                escaped.push(c);
+            }
+            _ => escaped.push(c),
+        }
+    }
+    escaped
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -117,8 +136,6 @@ pub fn run() {
         .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![
             run_benchmark,
-            apply_dns,
-            restore_dns,
             execute_admin_apply,
             execute_admin_restore
         ])

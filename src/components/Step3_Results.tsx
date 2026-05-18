@@ -6,12 +6,11 @@ interface Props {
   selectedIp: string | null;
   error: string | null;
   applied: boolean;
+  isApplying: boolean;
   onSelect: (ip: string, secondaryIp: string) => void;
-  onApply: () => void;
-  onRestore: () => void;
-  onStartOver: () => void;
   onAuthorizeApply: () => void;
   onAuthorizeRestore: () => void;
+  onStartOver: () => void;
 }
 
 const wrapperStyle: React.CSSProperties = {
@@ -35,7 +34,7 @@ const btnBase: React.CSSProperties = {
   transition: "opacity 0.2s",
 };
 
-const applyBtn: React.CSSProperties = {
+const authBtn: React.CSSProperties = {
   ...btnBase,
   backgroundColor: "#7c3aed",
   color: "#fff",
@@ -55,23 +54,16 @@ const startOverBtn: React.CSSProperties = {
   fontSize: 13,
 };
 
-const authBtn: React.CSSProperties = {
-  ...btnBase,
-  backgroundColor: "#ef4444",
-  color: "#fff",
-};
-
 function Step3_Results({
   results,
   selectedIp,
   error,
   applied,
+  isApplying,
   onSelect,
-  onApply,
-  onRestore,
-  onStartOver,
   onAuthorizeApply,
   onAuthorizeRestore,
+  onStartOver,
 }: Props) {
   const reachable = useMemo(
     () => results.filter((r) => r.latency !== null && r.latency < UNREACHABLE_SENTINEL),
@@ -81,7 +73,9 @@ function Step3_Results({
   const allUnreachable = results.length > 0 && reachable.length === 0;
 
   const secondaryFor = (ip: string) => {
-    const others = reachable.filter((r) => r.ip !== ip);
+    const others = reachable
+      .filter((r) => r.ip !== ip)
+      .sort((a, b) => (a.latency ?? UNREACHABLE_SENTINEL) - (b.latency ?? UNREACHABLE_SENTINEL));
     return others.length > 0 ? others[0].ip : "";
   };
 
@@ -142,41 +136,22 @@ function Step3_Results({
         </p>
       )}
 
-      {error && error.includes("Admin privileges") && (
-        <div style={{ display: "flex", gap: 8 }}>
-          {!applied && error.includes("update") && (
-            <button style={authBtn} onClick={onAuthorizeApply}>
-              Authorize Apply
-            </button>
-          )}
-          {applied && error.includes("restore") && (
-            <button style={authBtn} onClick={onAuthorizeRestore}>
-              Authorize Restore
-            </button>
-          )}
-        </div>
+      {!applied && selectedIp && !isApplying && (
+        <button style={authBtn} onClick={onAuthorizeApply}>
+          Apply DNS (requires admin)
+        </button>
+      )}
+      {isApplying && (
+        <p style={{ fontSize: 13, color: "#94a3b8", margin: 0 }}>
+          Waiting for authorization...
+        </p>
       )}
 
-      <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
-        {!applied && (
-          <button
-            style={{
-              ...applyBtn,
-              opacity: selectedIp ? 1 : 0.4,
-              cursor: selectedIp ? "pointer" : "not-allowed",
-            }}
-            disabled={!selectedIp}
-            onClick={onApply}
-          >
-            Apply DNS
-          </button>
-        )}
-        {applied && (
-          <button style={restoreBtn} onClick={onRestore}>
-            Restore Default DNS
-          </button>
-        )}
-      </div>
+      {applied && !isApplying && (
+        <button style={restoreBtn} onClick={onAuthorizeRestore} disabled={isApplying}>
+          Restore Default DNS
+        </button>
+      )}
 
       <button style={startOverBtn} onClick={onStartOver}>
         Start Over

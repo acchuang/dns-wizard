@@ -4,7 +4,7 @@ use crate::dns_bench::DnsProvider;
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum UserProfile {
     Gamer,
-    Parent,
+    Family,
     Privacy,
     AdBlock,
     Balanced,
@@ -16,7 +16,7 @@ pub fn get_profile_providers(profile: UserProfile) -> Vec<DnsProvider> {
             DnsProvider { name: "Cloudflare".to_string(), ip: "1.1.1.1".to_string(), latency: None },
             DnsProvider { name: "Google".to_string(), ip: "8.8.8.8".to_string(), latency: None },
         ],
-        UserProfile::Parent => vec![
+        UserProfile::Family => vec![
             DnsProvider { name: "Cloudflare Family".to_string(), ip: "1.1.1.3".to_string(), latency: None },
             DnsProvider { name: "CleanBrowsing".to_string(), ip: "185.228.168.168".to_string(), latency: None },
         ],

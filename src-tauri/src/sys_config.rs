@@ -1,4 +1,3 @@
-use std::process::Command;
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -8,7 +7,7 @@ pub struct ConfigResult {
 }
 
 pub fn detect_network_service() -> Result<String, String> {
-    let output = Command::new("networksetup")
+    let output = std::process::Command::new("networksetup")
         .args(["-listallnetworkservices"])
         .output()
         .map_err(|e| format!("Failed to run networksetup: {}", e))?;
@@ -20,56 +19,16 @@ pub fn detect_network_service() -> Result<String, String> {
     let stdout = String::from_utf8_lossy(&output.stdout);
     let service = stdout
         .lines()
-        .next()
-        .ok_or_else(|| "No network services found".to_string())?
+        .skip(1)
+        .find(|line| {
+            let trimmed = line.trim();
+            !trimmed.is_empty() && !trimmed.starts_with('*')
+        })
+        .ok_or_else(|| "No enabled network services found".to_string())?
         .trim()
         .to_string();
 
-    if service.is_empty() {
-        return Err("No network services found".to_string());
-    }
-
     Ok(service)
-}
-
-pub fn set_dns_macos(service: &str, primary: &str, secondary: &str) -> ConfigResult {
-    let args = if secondary.is_empty() {
-        vec!["-setdnsservers", service, primary]
-    } else {
-        vec!["-setdnsservers", service, primary, secondary]
-    };
-
-    let status = Command::new("networksetup")
-        .args(&args)
-        .status();
-
-    match status {
-        Ok(s) if s.success() => ConfigResult {
-            success: true,
-            message: format!("DNS updated to {} and {}", primary, secondary),
-        },
-        _ => ConfigResult {
-            success: false,
-            message: "Admin privileges required to update DNS settings.".to_string(),
-        },
-    }
-}
-
-pub fn restore_dns_macos(service: &str) -> ConfigResult {
-    let status = Command::new("networksetup")
-        .args(["-setdnsservers", service, "empty"])
-        .status();
-
-    match status {
-        Ok(s) if s.success() => ConfigResult {
-            success: true,
-            message: "DNS restored to automatic (DHCP)".to_string(),
-        },
-        _ => ConfigResult {
-            success: false,
-            message: "Admin privileges required to restore DNS settings.".to_string(),
-        },
-    }
 }
 
 #[cfg(test)]

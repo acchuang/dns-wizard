@@ -27,6 +27,16 @@ const spinnerStyle: React.CSSProperties = {
   animation: "spin 0.8s linear infinite",
 };
 
+const retryBtn: React.CSSProperties = {
+  padding: "8px 20px",
+  borderRadius: 8,
+  border: "1px solid #334155",
+  backgroundColor: "transparent",
+  color: "#94a3b8",
+  fontSize: 13,
+  cursor: "pointer",
+};
+
 function Step2_Benchmark({ profile, isRunning, error, onStart }: Props) {
   const hasStarted = useRef(false);
 
@@ -53,10 +63,15 @@ function Step2_Benchmark({ profile, isRunning, error, onStart }: Props) {
           This may take a few seconds
         </p>
       )}
-      {error && (
-        <p style={{ fontSize: 13, color: "#ef4444", margin: 0, textAlign: "center" }}>
-          {error}
-        </p>
+      {error && !isRunning && (
+        <>
+          <p style={{ fontSize: 13, color: "#ef4444", margin: 0, textAlign: "center" }}>
+            {error}
+          </p>
+          <button style={retryBtn} onClick={() => { hasStarted.current = false; onStart(); }}>
+            Retry
+          </button>
+        </>
       )}
     </div>
   );

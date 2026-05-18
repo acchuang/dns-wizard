@@ -33,8 +33,7 @@ export interface WizardState {
   applied: boolean;
   selectedIp: string | null;
   selectedSecondaryIp: string | null;
+  isApplying: boolean;
 }
 
-export const UNREACHABLE_SENTINEL = Number.MAX_SAFE_INTEGER;
-
-export const ADMIN_ERROR_MESSAGE = "Admin privileges required to update DNS settings.";
+export const UNREACHABLE_SENTINEL = 99999;
