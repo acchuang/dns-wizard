@@ -57,9 +57,9 @@ async fn execute_admin_apply(
 
     if output.status.success() {
         let msg = if secondary.is_empty() {
-            format!("DNS updated to {}", primary)
+            format!("DNS updated to {} (service: {})", primary, service)
         } else {
-            format!("DNS updated to {} (primary) and {} (secondary)", primary, secondary)
+            format!("DNS updated to {} (primary) and {} (secondary) on {}", primary, secondary, service)
         };
         Ok(ConfigResult {
             success: true,
@@ -72,7 +72,7 @@ async fn execute_admin_apply(
             message: if stderr.contains("User canceled") || stderr.contains("-128") {
                 "Authorization cancelled.".to_string()
             } else {
-                format!("Failed to apply DNS: {}", stderr.trim())
+                format!("Failed to apply DNS on '{}': {}", service, stderr.trim())
             },
         })
     }
@@ -101,7 +101,7 @@ async fn execute_admin_restore(
     if output.status.success() {
         Ok(ConfigResult {
             success: true,
-            message: "DNS restored to automatic (DHCP)".to_string(),
+            message: format!("DNS restored to automatic (DHCP) on {}", service),
         })
     } else {
         let stderr = String::from_utf8_lossy(&output.stderr);
@@ -110,7 +110,7 @@ async fn execute_admin_restore(
             message: if stderr.contains("User canceled") || stderr.contains("-128") {
                 "Authorization cancelled.".to_string()
             } else {
-                format!("Failed to restore DNS: {}", stderr.trim())
+                format!("Failed to restore DNS on '{}': {}", service, stderr.trim())
             },
         })
     }
