@@ -7,28 +7,63 @@ pub struct ConfigResult {
 }
 
 pub fn detect_network_service() -> Result<String, String> {
-    let output = std::process::Command::new("networksetup")
-        .args(["-listallnetworkservices"])
+    let route_output = std::process::Command::new("route")
+        .args(["-n", "get", "default"])
+        .output()
+        .map_err(|e| format!("Failed to run route: {}", e))?;
+
+    if !route_output.status.success() {
+        return Err("Could not determine default route".to_string());
+    }
+
+    let route_stdout = String::from_utf8_lossy(&route_output.stdout);
+    let interface = route_stdout
+        .lines()
+        .find_map(|line| {
+            let trimmed = line.trim();
+            if trimmed.starts_with("interface:") {
+                Some(trimmed.strip_prefix("interface:").unwrap_or(trimmed).trim().to_string())
+            } else {
+                None
+            }
+        })
+        .ok_or_else(|| "Could not find interface in route output".to_string())?;
+
+    if interface.is_empty() {
+        return Err("Empty interface from route output".to_string());
+    }
+
+    let list_output = std::process::Command::new("networksetup")
+        .args(["-listallhardwareports"])
         .output()
         .map_err(|e| format!("Failed to run networksetup: {}", e))?;
 
-    if !output.status.success() {
+    if !list_output.status.success() {
         return Err("networksetup command failed".to_string());
     }
 
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    let service = stdout
-        .lines()
-        .skip(1)
-        .find(|line| {
-            let trimmed = line.trim();
-            !trimmed.is_empty() && !trimmed.starts_with('*')
-        })
-        .ok_or_else(|| "No enabled network services found".to_string())?
-        .trim()
-        .to_string();
+    let list_stdout = String::from_utf8_lossy(&list_output.stdout);
 
-    Ok(service)
+    let mut current_port: Option<String> = None;
+    let mut current_device: Option<String> = None;
+
+    for line in list_stdout.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with("Hardware Port:") {
+            current_port = Some(trimmed.strip_prefix("Hardware Port:").unwrap_or(trimmed).trim().to_string());
+            current_device = None;
+        } else if trimmed.starts_with("Device:") {
+            current_device = Some(trimmed.strip_prefix("Device:").unwrap_or(trimmed).trim().to_string());
+        }
+
+        if let (Some(port), Some(dev)) = (&current_port, &current_device) {
+            if dev == &interface {
+                return Ok(port.clone());
+            }
+        }
+    }
+
+    Err(format!("Could not find network service for interface {}", interface))
 }
 
 #[cfg(test)]
