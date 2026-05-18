@@ -146,33 +146,23 @@ function App() {
   return (
     <>
       <ProgressDots step={state.step} applied={state.applied} />
-      <div
-        style={{
-          width: "100%",
-          flex: 1,
-          display: "flex",
-          overflow: "hidden",
-        }}
-      >
-          <div
-            style={{
-              display: "flex",
-              width: "300%",
-              transform: `translateX(-${(state.step - 1) * 100 / 3}%)`,
-              transition: "transform 0.3s ease",
-            }}
-          >
+      <div style={{ width: "100%", flex: 1, display: "flex", overflow: "hidden" }}>
+        {state.step === 1 && (
           <Step1_ChooseProfile
             onSelect={selectProfile}
             applied={state.applied}
             appliedProfile={state.appliedProfile}
           />
+        )}
+        {state.step === 2 && (
           <Step2_Benchmark
             profile={state.selectedProfile}
             isRunning={state.isRunning}
             error={state.error}
             onStart={runBenchmark}
           />
+        )}
+        {state.step === 3 && (
           <Step3_Results
             results={state.benchmarkResults}
             selectedIp={state.selectedIp}
@@ -184,7 +174,7 @@ function App() {
             onAuthorizeRestore={authorizeRestore}
             onStartOver={startOver}
           />
-        </div>
+        )}
       </div>
     </>
   );

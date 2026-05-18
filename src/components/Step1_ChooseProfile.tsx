@@ -41,7 +41,8 @@ interface Props {
 }
 
 const wrapperStyle: React.CSSProperties = {
-  flex: "0 0 33.333%",
+  flex: "0 0 100%",
+  width: "100%",
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
