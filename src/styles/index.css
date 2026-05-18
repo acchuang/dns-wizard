@@ -21,3 +21,9 @@ body {
   align-items: center;
   padding: 40px 24px 24px;
 }
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

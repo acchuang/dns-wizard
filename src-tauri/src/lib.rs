@@ -45,11 +45,83 @@ fn restore_dns() -> ConfigResult {
     restore_dns_macos(&service)
 }
 
+#[tauri::command]
+async fn execute_admin_apply(
+    app: tauri::AppHandle<tauri::Wry>,
+    primary: String,
+    secondary: String,
+) -> Result<ConfigResult, String> {
+    use tauri_plugin_shell::ShellExt;
+
+    let service = detect_network_service().map_err(|e| e)?;
+    let script = format!(
+        "do shell script \"networksetup -setdnsservers {} {} {}\" with administrator privileges",
+        service, primary, secondary
+    );
+    let output = app
+        .shell()
+        .command("osascript")
+        .args(["-e", &script])
+        .output()
+        .await
+        .map_err(|e| format!("Failed to execute osascript: {}", e))?;
+
+    if output.status.success() {
+        Ok(ConfigResult {
+            success: true,
+            message: format!("DNS updated to {} and {}", primary, secondary),
+        })
+    } else {
+        Ok(ConfigResult {
+            success: false,
+            message: "Authorization cancelled or failed.".to_string(),
+        })
+    }
+}
+
+#[tauri::command]
+async fn execute_admin_restore(
+    app: tauri::AppHandle<tauri::Wry>,
+) -> Result<ConfigResult, String> {
+    use tauri_plugin_shell::ShellExt;
+
+    let service = detect_network_service().map_err(|e| e)?;
+    let script = format!(
+        "do shell script \"networksetup -setdnsservers {} empty\" with administrator privileges",
+        service
+    );
+    let output = app
+        .shell()
+        .command("osascript")
+        .args(["-e", &script])
+        .output()
+        .await
+        .map_err(|e| format!("Failed to execute osascript: {}", e))?;
+
+    if output.status.success() {
+        Ok(ConfigResult {
+            success: true,
+            message: "DNS restored to automatic (DHCP)".to_string(),
+        })
+    } else {
+        Ok(ConfigResult {
+            success: false,
+            message: "Authorization cancelled or failed.".to_string(),
+        })
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![run_benchmark, apply_dns, restore_dns])
+        .invoke_handler(tauri::generate_handler![
+            run_benchmark,
+            apply_dns,
+            restore_dns,
+            execute_admin_apply,
+            execute_admin_restore
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
