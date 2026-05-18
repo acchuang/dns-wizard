@@ -1,17 +1,26 @@
 {
   "name": "dns-wizard",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "DNS Wizard — optimize your DNS with one click",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "tauri": "tauri"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
-    "framer-motion": "^12.38.0",
-    "lucide-react": "^1.16.0"
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "@tauri-apps/api": "^2.0.0",
+    "lucide-react": "^0.460.0"
+  },
+  "devDependencies": {
+    "typescript": "~5.6.0",
+    "vite": "^6.0.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "@tauri-apps/cli": "^2.0.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0"
   }
 }
