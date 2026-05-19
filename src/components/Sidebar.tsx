@@ -22,17 +22,18 @@ const sidebarStyle: React.CSSProperties = {
   alignItems: "center",
   paddingTop: 16,
   gap: 4,
-  paddingLeft: 6,
   borderRight: "1px solid #1e293b",
   boxSizing: "border-box",
+  overflow: "hidden",
 };
 
 const btnStyle = (active: boolean): React.CSSProperties => ({
-  width: 40,
-  height: 40,
+  width: 36,
+  height: 36,
   borderRadius: 8,
   border: "none",
   outline: "none",
+  margin: "0 0 0 6px",
   backgroundColor: active ? "#7c3aed" : "transparent",
   color: active ? "#fff" : "#64748b",
   cursor: "pointer",
