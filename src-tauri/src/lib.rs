@@ -1,5 +1,6 @@
 mod dns_bench;
 mod profiles;
+mod speed_test;
 mod sys_config;
 
 use dns_bench::{benchmark_dns, DnsProvider};
@@ -133,6 +134,11 @@ fn shell_escape(s: &str) -> String {
     escaped
 }
 
+#[tauri::command]
+async fn run_speed_test() -> Result<speed_test::SpeedResult, String> {
+    speed_test::run_speed_test().await
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -140,7 +146,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             run_benchmark,
             execute_admin_apply,
-            execute_admin_restore
+            execute_admin_restore,
+            run_speed_test,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
