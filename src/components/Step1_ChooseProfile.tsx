@@ -32,6 +32,9 @@ const profiles: ProfileDef[] = [
     description: "Stable, high-speed default",
     icon: "scale",
   },
+  { id: "ControlD", label: "Control D", description: "Filtering & customization", icon: "filter" },
+  { id: "OpenDNS", label: "OpenDNS", description: "Security & parental controls", icon: "lock" },
+  { id: "Comodo", label: "Comodo Secure", description: "Malware & phishing protection", icon: "shieldCheck" },
 ];
 
 interface Props {
@@ -52,11 +55,11 @@ const wrapperStyle: React.CSSProperties = {
 };
 
 const gridStyle: React.CSSProperties = {
-  display: "flex",
-  flexWrap: "wrap",
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
   gap: 16,
-  justifyContent: "center",
-  maxWidth: 460,
+  maxWidth: 480,
+  width: "100%",
 };
 
 function Step1_ChooseProfile({ onSelect, applied, appliedProfile }: Props) {

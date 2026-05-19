@@ -8,6 +8,9 @@ pub enum UserProfile {
     Privacy,
     AdBlock,
     Balanced,
+    ControlD,
+    OpenDNS,
+    Comodo,
 }
 
 pub fn get_profile_providers(profile: UserProfile) -> Vec<DnsProvider> {
@@ -32,6 +35,18 @@ pub fn get_profile_providers(profile: UserProfile) -> Vec<DnsProvider> {
             DnsProvider { name: "Cloudflare".to_string(), ip: "1.1.1.1".to_string(), latency: None },
             DnsProvider { name: "Google".to_string(), ip: "8.8.8.8".to_string(), latency: None },
             DnsProvider { name: "Quad9".to_string(), ip: "9.9.9.9".to_string(), latency: None },
+        ],
+        UserProfile::ControlD => vec![
+            DnsProvider { name: "Control D".to_string(), ip: "76.76.2.0".to_string(), latency: None },
+            DnsProvider { name: "Control D Alt".to_string(), ip: "76.76.10.0".to_string(), latency: None },
+        ],
+        UserProfile::OpenDNS => vec![
+            DnsProvider { name: "OpenDNS".to_string(), ip: "208.67.222.222".to_string(), latency: None },
+            DnsProvider { name: "OpenDNS Family".to_string(), ip: "208.67.220.220".to_string(), latency: None },
+        ],
+        UserProfile::Comodo => vec![
+            DnsProvider { name: "Comodo Secure".to_string(), ip: "8.26.56.26".to_string(), latency: None },
+            DnsProvider { name: "Comodo Secure Alt".to_string(), ip: "8.20.247.20".to_string(), latency: None },
         ],
     }
 }

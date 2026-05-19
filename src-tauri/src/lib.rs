@@ -13,6 +13,9 @@ async fn run_benchmark(profile: String) -> Result<Vec<DnsProvider>, String> {
         "Family" => UserProfile::Family,
         "Privacy" => UserProfile::Privacy,
         "AdBlock" => UserProfile::AdBlock,
+        "ControlD" => UserProfile::ControlD,
+        "OpenDNS" => UserProfile::OpenDNS,
+        "Comodo" => UserProfile::Comodo,
         _ => UserProfile::Balanced,
     };
 
