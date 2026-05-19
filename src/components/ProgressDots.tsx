@@ -9,7 +9,7 @@ const dotStyle = (active: boolean): React.CSSProperties => ({
 const containerStyle: React.CSSProperties = {
   display: "flex",
   gap: 12,
-  marginBottom: 32,
+  marginBottom: 24,
 };
 
 interface Props {

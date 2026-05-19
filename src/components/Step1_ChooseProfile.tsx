@@ -51,7 +51,6 @@ const wrapperStyle: React.CSSProperties = {
   alignItems: "center",
   justifyContent: "center",
   gap: 24,
-  paddingTop: 20,
 };
 
 const gridStyle: React.CSSProperties = {

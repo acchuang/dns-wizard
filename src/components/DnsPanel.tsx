@@ -150,7 +150,7 @@ function DnsPanel({ onDnsApplied }: Props) {
   }, []);
 
   return (
-    <>
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 24, overflow: "hidden" }}>
       <ProgressDots step={state.step} applied={state.applied} />
       <div style={{ width: "100%", flex: 1, display: "flex", overflow: "hidden" }}>
         {state.step === 1 && (
@@ -182,7 +182,7 @@ function DnsPanel({ onDnsApplied }: Props) {
           />
         )}
       </div>
-    </>
+    </div>
   );
 }
 

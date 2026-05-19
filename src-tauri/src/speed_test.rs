@@ -9,8 +9,8 @@ pub struct SpeedResult {
     pub elapsed_ms: u64,
 }
 
-const SPEED_TEST_URL: &str = "https://speed.cloudflare.com/__down?bytes=10000000";
-const SPEED_TEST_FALLBACK_URL: &str = "https://proof.ovh.net/files/1Mb.dat";
+const SPEED_TEST_URL: &str = "https://speed.cloudflare.com/__down?bytes=25000000";
+const SPEED_TEST_FALLBACK_URL: &str = "https://speed.cloudflare.com/__down?bytes=10000000";
 const TIMEOUT_SECS: u64 = 30;
 
 pub async fn run_speed_test() -> Result<SpeedResult, String> {

@@ -28,7 +28,7 @@ function App() {
   return (
     <div style={{ display: "flex", width: "100vw", height: "100vh", backgroundColor: "#1a1a2e" }}>
       <Sidebar activeTool={activeTool} onToolChange={setActiveTool} />
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+      <div className="app-content">
         {activeTool === "dns" && <DnsPanel onDnsApplied={handleDnsApplied} />}
         {activeTool === "speed" && <SpeedPanel state={speedState} setState={setSpeedState} />}
         {activeTool === "ping" && <PingPanel state={pingState} setState={setPingState} />}

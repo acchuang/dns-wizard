@@ -20,9 +20,7 @@ const wrapperStyle: React.CSSProperties = {
   flexDirection: "column",
   alignItems: "center",
   gap: 16,
-  paddingTop: 20,
   overflowY: "auto",
-  maxHeight: "calc(100vh - 120px)",
 };
 
 const btnBase: React.CSSProperties = {
