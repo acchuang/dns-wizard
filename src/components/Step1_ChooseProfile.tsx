@@ -56,8 +56,7 @@ const wrapperStyle: React.CSSProperties = {
 const gridStyle: React.CSSProperties = {
   display: "grid",
   gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
-  gap: 16,
-  maxWidth: 480,
+  gap: 12,
   width: "100%",
 };
 
