@@ -31,6 +31,7 @@ const btnStyle = (active: boolean): React.CSSProperties => ({
   height: 40,
   borderRadius: 8,
   border: "none",
+  outline: "none",
   backgroundColor: active ? "#7c3aed" : "transparent",
   color: active ? "#fff" : "#64748b",
   cursor: "pointer",
