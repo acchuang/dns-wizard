@@ -26,9 +26,9 @@ const cardStyle: React.CSSProperties = {
   flexDirection: "column",
   alignItems: "center",
   gap: 10,
-  border: "2px solid transparent",
-  transition: "border-color 0.2s ease, transform 0.2s ease",
-  width: 140,
+  boxShadow: "0 0 0 0px transparent",
+  transition: "box-shadow 0.2s ease, transform 0.2s ease",
+  width: "100%",
 };
 
 function ProfileCard({ profile, onSelect }: Props) {
@@ -39,11 +39,11 @@ function ProfileCard({ profile, onSelect }: Props) {
       style={cardStyle}
       onClick={onSelect}
       onMouseEnter={(e) => {
-        (e.currentTarget as HTMLDivElement).style.borderColor = "#7c3aed";
+        (e.currentTarget as HTMLDivElement).style.boxShadow = "0 0 0 2px #7c3aed";
         (e.currentTarget as HTMLDivElement).style.transform = "scale(1.03)";
       }}
       onMouseLeave={(e) => {
-        (e.currentTarget as HTMLDivElement).style.borderColor = "transparent";
+        (e.currentTarget as HTMLDivElement).style.boxShadow = "0 0 0 0px transparent";
         (e.currentTarget as HTMLDivElement).style.transform = "scale(1)";
       }}
     >

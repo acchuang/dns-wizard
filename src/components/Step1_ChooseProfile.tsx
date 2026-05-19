@@ -58,6 +58,8 @@ const gridStyle: React.CSSProperties = {
   gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
   gap: 12,
   width: "100%",
+  overflow: "hidden",
+  padding: 2,
 };
 
 function Step1_ChooseProfile({ onSelect, applied, appliedProfile }: Props) {
