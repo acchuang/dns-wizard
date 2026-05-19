@@ -15,15 +15,24 @@ function App() {
   const [speedState, setSpeedState] = useState<SpeedTestState>(initialSpeed);
   const [pingState, setPingState] = useState<PingState>(initialPing);
   const [leakState, setLeakState] = useState<LeakTestState>(initialLeak);
+  const [appliedDns, setAppliedDns] = useState<string[]>([]);
+
+  const handleDnsApplied = (primary: string | null, secondary: string | null) => {
+    if (primary) {
+      setAppliedDns([primary, secondary ?? ""].filter(Boolean));
+    } else {
+      setAppliedDns([]);
+    }
+  };
 
   return (
     <div style={{ display: "flex", width: "100vw", height: "100vh", backgroundColor: "#1a1a2e" }}>
       <Sidebar activeTool={activeTool} onToolChange={setActiveTool} />
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-        {activeTool === "dns" && <DnsPanel />}
+        {activeTool === "dns" && <DnsPanel onDnsApplied={handleDnsApplied} />}
         {activeTool === "speed" && <SpeedPanel state={speedState} setState={setSpeedState} />}
         {activeTool === "ping" && <PingPanel state={pingState} setState={setPingState} />}
-        {activeTool === "leak" && <LeakPanel state={leakState} setState={setLeakState} />}
+        {activeTool === "leak" && <LeakPanel state={leakState} setState={setLeakState} configuredDns={appliedDns} />}
       </div>
     </div>
   );

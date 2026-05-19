@@ -19,7 +19,11 @@ const initialState: WizardState = {
   isApplying: false,
 };
 
-function DnsPanel() {
+interface Props {
+  onDnsApplied?: (primary: string | null, secondary: string | null) => void;
+}
+
+function DnsPanel({ onDnsApplied }: Props) {
   const [state, setState] = useState<WizardState>(initialState);
   const benchmarkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -112,6 +116,7 @@ function DnsPanel() {
           appliedProfile: prev.selectedProfile,
           isApplying: false,
         }));
+        onDnsApplied?.(state.selectedIp, state.selectedSecondaryIp);
       } else {
         setState((prev) => ({ ...prev, error: result.message, isApplying: false }));
       }
@@ -127,6 +132,7 @@ function DnsPanel() {
       const result = await invoke<ConfigResult>("execute_admin_restore");
       if (result.success) {
         setState((prev) => ({ ...prev, applied: false, isApplying: false }));
+        onDnsApplied?.(null, null);
       } else {
         setState((prev) => ({ ...prev, error: result.message, isApplying: false }));
       }
