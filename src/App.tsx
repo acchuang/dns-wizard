@@ -5,6 +5,7 @@ import DnsPanel from "./components/DnsPanel";
 import SpeedPanel from "./components/SpeedPanel";
 import PingPanel from "./components/PingPanel";
 import LeakPanel from "./components/LeakPanel";
+import AboutPanel from "./components/AboutPanel";
 
 const initialSpeed: SpeedTestState = { status: "idle", result: null, error: null };
 const initialPing: PingState = { host: "cloudflare.com", mode: "ping", isRunning: false, results: [], error: null };
@@ -33,6 +34,7 @@ function App() {
         {activeTool === "speed" && <SpeedPanel state={speedState} setState={setSpeedState} />}
         {activeTool === "ping" && <PingPanel state={pingState} setState={setPingState} />}
         {activeTool === "leak" && <LeakPanel state={leakState} setState={setLeakState} configuredDns={appliedDns} />}
+        {activeTool === "about" && <AboutPanel />}
       </div>
     </div>
   );

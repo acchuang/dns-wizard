@@ -76,7 +76,13 @@ pub fn cancel_traceroute() {
 pub fn run_traceroute_sync(host: String, max_hops: u32) -> Result<Vec<HopResult>, String> {
     TRACE_CANCEL.store(false, Ordering::SeqCst);
 
-    let output = Command::new("traceroute")
+    let traceroute_path = if std::path::Path::new("/usr/sbin/traceroute").exists() {
+        "/usr/sbin/traceroute"
+    } else {
+        "traceroute"
+    };
+
+    let output = Command::new(traceroute_path)
         .args(["-m", &max_hops.to_string(), "-w", "2", &host])
         .output()
         .map_err(|e| format!("Failed to run traceroute: {}", e))?;
@@ -99,20 +105,46 @@ pub fn run_traceroute_sync(host: String, max_hops: u32) -> Result<Vec<HopResult>
             continue;
         }
 
-        let hop_num = match trimmed.split_whitespace().next() {
-            Some(n) => match n.parse::<u32>() {
-                Ok(num) => num,
-                Err(_) => continue,
-            },
-            None => continue,
+        let parts: Vec<&str> = trimmed.split_whitespace().collect();
+        if parts.is_empty() {
+            continue;
+        }
+
+        let hop_num = match parts[0].parse::<u32>() {
+            Ok(num) => num,
+            Err(_) => continue,
         };
 
-        let parts: Vec<&str> = trimmed.split_whitespace().collect();
-        let host_name = if parts.len() > 1 { parts[1].to_string() } else { "?".to_string() };
+        // Check for timeout line like "5  * * *"
+        if parts[1] == "*" {
+            results.push(HopResult {
+                hop: hop_num,
+                host: "*".to_string(),
+                latency_ms: None,
+                success: false,
+            });
+            continue;
+        }
 
-        let latency = parts.iter()
-            .find(|p| p.ends_with("ms"))
-            .and_then(|p| p.trim_end_matches("ms").parse::<f64>().ok());
+        // Extract hostname — prefer IP in parentheses if present
+        let host_name = if parts.len() > 2 && parts[2].starts_with('(') {
+            // Format: "1  hostname (IP)  ..."
+            let ip = parts[2].trim_start_matches('(').trim_end_matches(')');
+            ip.to_string()
+        } else {
+            parts[1].to_string()
+        };
+
+        // Find latency: look for a number followed by "ms" as separate tokens
+        let mut latency: Option<f64> = None;
+        for i in 1..parts.len().saturating_sub(1) {
+            if parts[i + 1] == "ms" {
+                if let Ok(val) = parts[i].parse::<f64>() {
+                    latency = Some(val);
+                    break;
+                }
+            }
+        }
 
         results.push(HopResult {
             hop: hop_num,

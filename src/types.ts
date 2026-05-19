@@ -28,7 +28,7 @@ export interface ProfileDef {
 }
 
 // --- Navigation ---
-export type ActiveTool = "dns" | "speed" | "ping" | "leak";
+export type ActiveTool = "dns" | "speed" | "ping" | "leak" | "about";
 
 // --- Speed Test ---
 export interface SpeedResult {

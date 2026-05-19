@@ -1,4 +1,4 @@
-import { Globe, Zap, Radio, SearchCheck } from "lucide-react";
+import { Globe, Zap, Radio, SearchCheck, Info } from "lucide-react";
 import { ActiveTool } from "../types";
 
 interface Props {
@@ -56,6 +56,16 @@ function Sidebar({ activeTool, onToolChange }: Props) {
           </button>
         );
       })}
+      <div style={{ flex: 1 }} />
+      <button
+        style={btnStyle(activeTool === "about")}
+        onClick={() => onToolChange("about")}
+        title="About"
+        aria-label="About"
+        aria-pressed={activeTool === "about"}
+      >
+        <Info size={20} />
+      </button>
     </div>
   );
 }
