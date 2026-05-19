@@ -20,7 +20,7 @@ function AboutPanel() {
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 24, gap: 0, color: "#e2e8f0", overflowY: "auto" }}>
       <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0, marginBottom: 4 }}>DNS Wizard</h1>
-      <p style={{ fontSize: 13, color: "#64748b", margin: 0, marginBottom: 20 }}>Network utility suite for macOS</p>
+      <p style={{ fontSize: 13, color: "#64748b", margin: 0, marginBottom: 20 }}>6-tool network utility suite for macOS · v1.1.0</p>
 
       <div style={sectionStyle}>
         <h2 style={headingStyle}>DNS Wizard</h2>
