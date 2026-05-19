@@ -1,4 +1,4 @@
-import { Zap, Shield, Users, Ban, Scale } from "lucide-react";
+import { Zap, Shield, Users, Ban, Scale, ListFilter, Lock, ShieldCheck } from "lucide-react";
 import { ProfileDef } from "../types";
 
 const iconMap = {
@@ -7,6 +7,9 @@ const iconMap = {
   users: Users,
   ban: Ban,
   scale: Scale,
+  filter: ListFilter,
+  lock: Lock,
+  shieldCheck: ShieldCheck,
 };
 
 interface Props {

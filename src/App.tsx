@@ -1,182 +1,31 @@
-import { useState, useCallback, useEffect, useRef } from "react";
-import { invoke } from "@tauri-apps/api/core";
-import { WizardState, Profile, DnsProvider, ConfigResult } from "./types";
-import ProgressDots from "./components/ProgressDots";
-import Step1_ChooseProfile from "./components/Step1_ChooseProfile";
-import Step2_Benchmark from "./components/Step2_Benchmark";
-import Step3_Results from "./components/Step3_Results";
+import { useState } from "react";
+import { ActiveTool, SpeedTestState, PingState, LeakTestState } from "./types";
+import Sidebar from "./components/Sidebar";
+import DnsPanel from "./components/DnsPanel";
+import SpeedPanel from "./components/SpeedPanel";
+import PingPanel from "./components/PingPanel";
+import LeakPanel from "./components/LeakPanel";
 
-const initialState: WizardState = {
-  step: 1,
-  selectedProfile: null,
-  appliedProfile: null,
-  benchmarkResults: [],
-  isRunning: false,
-  error: null,
-  applied: false,
-  selectedIp: null,
-  selectedSecondaryIp: null,
-  isApplying: false,
-};
+const initialSpeed: SpeedTestState = { status: "idle", result: null, error: null };
+const initialPing: PingState = { host: "cloudflare.com", mode: "ping", isRunning: false, results: [], error: null };
+const initialLeak: LeakTestState = { status: "idle", result: null, error: null };
 
 function App() {
-  const [state, setState] = useState<WizardState>(initialState);
-  const benchmarkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const selectProfile = useCallback((profile: Profile) => {
-    setState((prev) => ({ ...prev, selectedProfile: profile, step: 2 }));
-  }, []);
-
-  const setRunning = useCallback((running: boolean) => {
-    setState((prev) => ({ ...prev, isRunning: running }));
-  }, []);
-
-  const setBenchmarkResults = useCallback((results: DnsProvider[]) => {
-    setState((prev) => ({
-      ...prev,
-      benchmarkResults: results,
-      isRunning: false,
-      step: 3,
-    }));
-  }, []);
-
-  const setError = useCallback((error: string | null) => {
-    setState((prev) => ({ ...prev, error, isRunning: false }));
-  }, []);
-
-  const runBenchmark = useCallback(async () => {
-    if (!state.selectedProfile) return;
-    setRunning(true);
-    setError(null);
-
-    if (benchmarkTimeoutRef.current) {
-      clearTimeout(benchmarkTimeoutRef.current);
-    }
-    benchmarkTimeoutRef.current = setTimeout(() => {
-      setState((prev) => {
-        if (prev.isRunning) {
-          return { ...prev, error: "Benchmark timed out. Please try again.", isRunning: false };
-        }
-        return prev;
-      });
-    }, 30000);
-
-    try {
-      console.log("[DNS Wizard] Starting benchmark for profile:", state.selectedProfile);
-      const results = await invoke<DnsProvider[]>("run_benchmark", {
-        profile: state.selectedProfile,
-      });
-      console.log("[DNS Wizard] Benchmark results:", results);
-      if (benchmarkTimeoutRef.current) {
-        clearTimeout(benchmarkTimeoutRef.current);
-        benchmarkTimeoutRef.current = null;
-      }
-      setBenchmarkResults(results);
-    } catch (e) {
-      console.error("[DNS Wizard] Benchmark error:", e);
-      if (benchmarkTimeoutRef.current) {
-        clearTimeout(benchmarkTimeoutRef.current);
-        benchmarkTimeoutRef.current = null;
-      }
-      setError(String(e));
-    }
-  }, [state.selectedProfile, setRunning, setError, setBenchmarkResults]);
-
-  useEffect(() => {
-    return () => {
-      if (benchmarkTimeoutRef.current) {
-        clearTimeout(benchmarkTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  const selectResult = useCallback(
-    (ip: string, secondaryIp: string) => {
-      setState((prev) => ({ ...prev, selectedIp: ip, selectedSecondaryIp: secondaryIp }));
-    },
-    []
-  );
-
-  const authorizeApply = useCallback(async () => {
-    if (!state.selectedIp || state.isApplying) return;
-    setState((prev) => ({ ...prev, isApplying: true, error: null }));
-    try {
-      const result = await invoke<ConfigResult>("execute_admin_apply", {
-        primary: state.selectedIp,
-        secondary: state.selectedSecondaryIp ?? "",
-      });
-      if (result.success) {
-        setState((prev) => ({
-          ...prev,
-          applied: true,
-          appliedProfile: prev.selectedProfile,
-          isApplying: false,
-        }));
-      } else {
-        setState((prev) => ({ ...prev, error: result.message, isApplying: false }));
-      }
-    } catch (e) {
-      setState((prev) => ({ ...prev, error: String(e), isApplying: false }));
-    }
-  }, [state.selectedIp, state.selectedSecondaryIp, state.selectedProfile, state.isApplying]);
-
-  const authorizeRestore = useCallback(async () => {
-    if (state.isApplying) return;
-    setState((prev) => ({ ...prev, isApplying: true, error: null }));
-    try {
-      const result = await invoke<ConfigResult>("execute_admin_restore");
-      if (result.success) {
-        setState((prev) => ({ ...prev, applied: false, isApplying: false }));
-      } else {
-        setState((prev) => ({ ...prev, error: result.message, isApplying: false }));
-      }
-    } catch (e) {
-      setState((prev) => ({ ...prev, error: String(e), isApplying: false }));
-    }
-  }, [state.isApplying]);
-
-  const startOver = useCallback(() => {
-    setState((prev) => ({
-      ...initialState,
-      applied: prev.applied,
-      appliedProfile: prev.appliedProfile,
-    }));
-  }, []);
+  const [activeTool, setActiveTool] = useState<ActiveTool>("dns");
+  const [speedState, setSpeedState] = useState<SpeedTestState>(initialSpeed);
+  const [pingState, setPingState] = useState<PingState>(initialPing);
+  const [leakState, setLeakState] = useState<LeakTestState>(initialLeak);
 
   return (
-    <>
-      <ProgressDots step={state.step} applied={state.applied} />
-      <div style={{ width: "100%", flex: 1, display: "flex", overflow: "hidden" }}>
-        {state.step === 1 && (
-          <Step1_ChooseProfile
-            onSelect={selectProfile}
-            applied={state.applied}
-            appliedProfile={state.appliedProfile}
-          />
-        )}
-        {state.step === 2 && (
-          <Step2_Benchmark
-            profile={state.selectedProfile}
-            isRunning={state.isRunning}
-            error={state.error}
-            onStart={runBenchmark}
-          />
-        )}
-        {state.step === 3 && (
-          <Step3_Results
-            results={state.benchmarkResults}
-            selectedIp={state.selectedIp}
-            error={state.error}
-            applied={state.applied}
-            isApplying={state.isApplying}
-            onSelect={selectResult}
-            onAuthorizeApply={authorizeApply}
-            onAuthorizeRestore={authorizeRestore}
-            onStartOver={startOver}
-          />
-        )}
+    <div style={{ display: "flex", width: "100vw", height: "100vh", backgroundColor: "#1a1a2e" }}>
+      <Sidebar activeTool={activeTool} onToolChange={setActiveTool} />
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        {activeTool === "dns" && <DnsPanel />}
+        {activeTool === "speed" && <SpeedPanel state={speedState} setState={setSpeedState} />}
+        {activeTool === "ping" && <PingPanel state={pingState} setState={setPingState} />}
+        {activeTool === "leak" && <LeakPanel state={leakState} setState={setLeakState} />}
       </div>
-    </>
+    </div>
   );
 }
 
