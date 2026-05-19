@@ -24,6 +24,7 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  padding-left: 8px;
 }
 
 @keyframes spin {
