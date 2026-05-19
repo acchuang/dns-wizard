@@ -3,6 +3,7 @@ mod ping;
 mod profiles;
 mod speed_test;
 mod sys_config;
+mod dns_leak;
 mod validate;
 
 use dns_bench::{benchmark_dns, DnsProvider};
@@ -166,6 +167,11 @@ fn cancel_traceroute() {
     ping::cancel_traceroute();
 }
 
+#[tauri::command]
+async fn run_dns_leak_test(configured_servers: Vec<String>) -> Result<dns_leak::DnsLeakResult, String> {
+    dns_leak::run_dns_leak_test(configured_servers).await
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -179,6 +185,7 @@ pub fn run() {
             run_traceroute,
             cancel_ping,
             cancel_traceroute,
+            run_dns_leak_test,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
