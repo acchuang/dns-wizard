@@ -89,6 +89,27 @@ function AboutPanel() {
       </div>
 
       <div style={{ borderTop: "1px solid #334155", paddingTop: 16, marginTop: 8 }}>
+        <a
+          href="https://buymeacoffee.com/acchuang"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "10px 20px",
+            borderRadius: 8,
+            backgroundColor: "#ff813f",
+            color: "#fff",
+            fontSize: 14,
+            fontWeight: 700,
+            textDecoration: "none",
+            transition: "opacity 0.2s",
+            marginBottom: 12,
+          }}
+        >
+          ☕ Support DNS Wizard
+        </a>
         <p style={{ fontSize: 12, color: "#475569", margin: 0 }}>
           Built with Tauri, React, and Rust. Network tools that respect your privacy.
         </p>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { ActiveTool, SpeedTestState, PingState, LeakTestState } from "./types";
 import { SimpleModeProvider } from "./components/SimpleModeContext";
+import OnboardingModal, { hasCompletedOnboarding } from "./components/OnboardingModal";
 import Sidebar from "./components/Sidebar";
 import DnsPanel from "./components/DnsPanel";
 import SpeedPanel from "./components/SpeedPanel";
@@ -16,7 +17,8 @@ const initialLeak: LeakTestState = { status: "idle", result: null, error: null }
 const toolKeys: ActiveTool[] = ["dns", "speed", "ping", "leak", "health", "about"];
 
 function AppInner() {
-  const [activeTool, setActiveTool] = useState<ActiveTool>("health");
+  const [showOnboarding, setShowOnboarding] = useState(!hasCompletedOnboarding());
+  const [activeTool, setActiveTool] = useState<ActiveTool>(hasCompletedOnboarding() ? "health" : "dns");
   const [speedState, setSpeedState] = useState<SpeedTestState>(initialSpeed);
   const [pingState, setPingState] = useState<PingState>(initialPing);
   const [leakState, setLeakState] = useState<LeakTestState>(initialLeak);
@@ -46,6 +48,7 @@ function AppInner() {
 
   return (
     <div style={{ display: "flex", width: "100vw", height: "100vh", backgroundColor: "#1a1a2e" }}>
+      {showOnboarding && <OnboardingModal onComplete={() => setShowOnboarding(false)} />}
       <Sidebar activeTool={activeTool} onToolChange={setActiveTool} />
       <div className="app-content">
         {activeTool === "dns" && <DnsPanel onDnsApplied={handleDnsApplied} />}
