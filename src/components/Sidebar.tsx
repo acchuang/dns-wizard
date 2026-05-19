@@ -18,7 +18,7 @@ const tools: { id: ActiveTool; icon: typeof Globe; label: string }[] = [
 ];
 
 const sidebarStyle: React.CSSProperties = {
-  width: 48,
+  width: 56,
   minHeight: "100%",
   backgroundColor: "#0f172a",
   display: "flex",
@@ -68,18 +68,21 @@ function Sidebar({ activeTool, onToolChange }: Props) {
       {ipInfo && (
         <div
           style={{
-            width: 36,
-            padding: "4px 0",
+            width: 48,
+            padding: "6px 2px",
             textAlign: "center" as const,
             fontSize: 8,
             color: "#475569",
-            lineHeight: 1.2,
-            marginBottom: 2,
+            lineHeight: 1.3,
+            marginBottom: 4,
             borderBottom: "1px solid #1e293b",
-            paddingBottom: 4,
+            paddingBottom: 6,
+            wordBreak: "break-all" as const,
+            overflowWrap: "break-word" as const,
           }}
           title={`IP: ${ipInfo.ip}\nISP: ${ipInfo.isp}\n${ipInfo.city}, ${ipInfo.country}`}
         >
+          <div style={{ fontSize: 7, color: "#64748b", marginBottom: 2, letterSpacing: 0.5 }}>MY IP</div>
           <div style={{ fontSize: 9, fontWeight: 600, color: "#94a3b8" }}>{ipInfo.ip}</div>
         </div>
       )}
