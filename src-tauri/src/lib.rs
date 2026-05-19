@@ -2,6 +2,7 @@ mod dns_bench;
 mod profiles;
 mod speed_test;
 mod sys_config;
+mod validate;
 
 use dns_bench::{benchmark_dns, DnsProvider};
 use profiles::{get_profile_providers, UserProfile};
