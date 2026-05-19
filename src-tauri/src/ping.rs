@@ -36,7 +36,7 @@ pub async fn run_ping(host: String, count: u32) -> Result<Vec<PingResult>, Strin
         }
 
         let start = Instant::now();
-        let addr = format!("{}:80", host);
+        let addr = format!("{}:443", host);
 
         match tokio::time::timeout(
             std::time::Duration::from_secs(5),

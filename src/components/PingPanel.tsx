@@ -40,6 +40,8 @@ const presets = [
   { label: "Cloudflare", host: "1.1.1.1" },
   { label: "Google", host: "8.8.8.8" },
   { label: "Quad9", host: "9.9.9.9" },
+  { label: "cloudflare.com", host: "cloudflare.com" },
+  { label: "google.com", host: "google.com" },
 ];
 
 const tabStyle = (active: boolean): React.CSSProperties => ({
@@ -148,6 +150,11 @@ function PingPanel({ state, setState }: Props) {
         ))}
       </div>
       {state.error && <p style={{ color: "#ef4444", fontSize: 13, margin: 0 }}>{state.error}</p>}
+      {state.isRunning && state.mode === "traceroute" && rows.length === 0 && (
+        <p style={{ color: "#94a3b8", fontSize: 13, margin: 0 }}>
+          Tracing route... this may take up to 40 seconds.
+        </p>
+      )}
       {!state.isRunning && !state.error && rows.length === 0 && (
         <p style={{ color: "#64748b", fontSize: 13, margin: 0 }}>
           {state.mode === "ping" ? "Click Run to ping a host" : "Click Run to trace the route to a host"}
