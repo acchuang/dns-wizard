@@ -1,10 +1,12 @@
 mod dns_bench;
+mod ping;
 mod profiles;
 mod speed_test;
 mod sys_config;
 mod validate;
 
 use dns_bench::{benchmark_dns, DnsProvider};
+use ping::{PingResult, HopResult};
 use profiles::{get_profile_providers, UserProfile};
 use sys_config::{detect_network_service, ConfigResult};
 
@@ -140,6 +142,30 @@ async fn run_speed_test() -> Result<speed_test::SpeedResult, String> {
     speed_test::run_speed_test().await
 }
 
+#[tauri::command]
+async fn run_ping(host: String, count: u32) -> Result<Vec<PingResult>, String> {
+    let host = validate::validate_host(&host)?;
+    let count = validate::clamp_count(count, 1, 20);
+    ping::run_ping(host, count).await
+}
+
+#[tauri::command]
+fn run_traceroute(host: String, max_hops: u32) -> Result<Vec<HopResult>, String> {
+    let host = validate::validate_host(&host)?;
+    let max_hops = validate::clamp_count(max_hops, 1, 30);
+    ping::run_traceroute_sync(host, max_hops)
+}
+
+#[tauri::command]
+fn cancel_ping() {
+    ping::cancel_ping();
+}
+
+#[tauri::command]
+fn cancel_traceroute() {
+    ping::cancel_traceroute();
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -149,6 +175,10 @@ pub fn run() {
             execute_admin_apply,
             execute_admin_restore,
             run_speed_test,
+            run_ping,
+            run_traceroute,
+            cancel_ping,
+            cancel_traceroute,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
