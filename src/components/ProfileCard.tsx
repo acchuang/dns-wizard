@@ -27,7 +27,7 @@ const cardStyle: React.CSSProperties = {
   alignItems: "center",
   gap: 10,
   boxShadow: "0 0 0 0px transparent",
-  transition: "box-shadow 0.2s ease, transform 0.2s ease",
+  transition: "box-shadow 0.2s ease",
   width: "100%",
 };
 
@@ -40,11 +40,9 @@ function ProfileCard({ profile, onSelect }: Props) {
       onClick={onSelect}
       onMouseEnter={(e) => {
         (e.currentTarget as HTMLDivElement).style.boxShadow = "0 0 0 2px #7c3aed";
-        (e.currentTarget as HTMLDivElement).style.transform = "scale(1.03)";
       }}
       onMouseLeave={(e) => {
         (e.currentTarget as HTMLDivElement).style.boxShadow = "0 0 0 0px transparent";
-        (e.currentTarget as HTMLDivElement).style.transform = "scale(1)";
       }}
     >
       <Icon size={28} color="#7c3aed" />

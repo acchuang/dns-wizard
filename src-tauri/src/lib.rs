@@ -4,6 +4,7 @@ mod profiles;
 mod speed_test;
 mod sys_config;
 mod dns_leak;
+mod latency_test;
 mod validate;
 
 use dns_bench::{benchmark_dns, DnsProvider};
@@ -139,8 +140,19 @@ fn shell_escape(s: &str) -> String {
 }
 
 #[tauri::command]
-async fn run_speed_test() -> Result<speed_test::SpeedResult, String> {
-    speed_test::run_speed_test().await
+async fn run_speed_test(app: tauri::AppHandle<tauri::Wry>) -> Result<speed_test::SpeedTestResult, String> {
+    speed_test::run_speed_test(app).await
+}
+
+#[tauri::command]
+fn cancel_speed_test() {
+    speed_test::cancel_speed_test();
+    latency_test::cancel_latency_test();
+}
+
+#[tauri::command]
+async fn run_latency_test(app: tauri::AppHandle<tauri::Wry>) -> Result<latency_test::LatencyResult, String> {
+    latency_test::run_latency_test(app).await
 }
 
 #[tauri::command]
@@ -183,6 +195,8 @@ pub fn run() {
             execute_admin_apply,
             execute_admin_restore,
             run_speed_test,
+            cancel_speed_test,
+            run_latency_test,
             run_ping,
             run_traceroute,
             cancel_ping,

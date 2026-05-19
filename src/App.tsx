@@ -7,7 +7,7 @@ import PingPanel from "./components/PingPanel";
 import LeakPanel from "./components/LeakPanel";
 import AboutPanel from "./components/AboutPanel";
 
-const initialSpeed: SpeedTestState = { status: "idle", result: null, error: null };
+const initialSpeed: SpeedTestState = { status: "idle", result: null, error: null, currentMbps: 0, currentStage: null, stageResults: [], latencyResult: null, testPhase: "idle", pingProgress: 0 };
 const initialPing: PingState = { host: "cloudflare.com", mode: "ping", isRunning: false, results: [], error: null };
 const initialLeak: LeakTestState = { status: "idle", result: null, error: null };
 

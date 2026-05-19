@@ -34,18 +34,20 @@ function AboutPanel() {
       <div style={sectionStyle}>
         <h2 style={headingStyle}>Speed Test</h2>
         <p style={bodyStyle}>
-          Measures your download speed by fetching data from Cloudflare's speed test endpoint (~25 MB).
-          Click <strong>Start Test</strong> and wait for the gauge to display your speed in Mbps.
-          If the primary server is unreachable, a fallback is used.
+          Comprehensive network quality assessment in two phases. <strong>Phase 1</strong> — 20 TCP pings to
+          1.1.1.1:443 measuring latency, jitter, and packet loss. <strong>Phase 2</strong> — five sequential
+          download stages (100 kB, 1 MB, 10 MB, 25 MB, 50 MB) from Cloudflare and third-party CDNs.
+          A composite <strong>Network Quality Score</strong> (A+ through F) is calculated from weighted metrics.
+          Past results are stored in history with min/avg/max stats.
         </p>
       </div>
 
       <div style={sectionStyle}>
         <h2 style={headingStyle}>Ping &amp; Traceroute</h2>
         <p style={bodyStyle}>
-          <strong>Ping</strong> measures TCP connection latency to a host (5 probes, port 80). Private and loopback IPs are blocked for safety.
+          <strong>Ping</strong> measures TCP connection latency to a host (5 probes, port 443). Private and loopback IPs are blocked for safety.
           <strong>Traceroute</strong> shows each network hop to a destination (up to 20 hops, 2-second timeout per hop).
-          Both support preset hosts (Cloudflare, Google, Quad9) or custom hostnames/IPs.
+          Built-in presets: Cloudflare (1.1.1.1), Google (8.8.8.8), Quad9 (9.9.9.9). Custom hostnames and IPs supported.
         </p>
       </div>
 

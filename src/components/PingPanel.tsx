@@ -40,8 +40,6 @@ const presets = [
   { label: "Cloudflare", host: "1.1.1.1" },
   { label: "Google", host: "8.8.8.8" },
   { label: "Quad9", host: "9.9.9.9" },
-  { label: "cloudflare.com", host: "cloudflare.com" },
-  { label: "google.com", host: "google.com" },
 ];
 
 const tabStyle = (active: boolean): React.CSSProperties => ({

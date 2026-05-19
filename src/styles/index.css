@@ -42,3 +42,18 @@ button:focus, a:focus, input:focus, select:focus {
     transform: rotate(360deg);
   }
 }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.speed-gauge-tick line {
+  stroke: #475569;
+  stroke-width: 1.5;
+}
+
+.speed-gauge-tick text {
+  fill: #64748b;
+  font-size: 11px;
+}

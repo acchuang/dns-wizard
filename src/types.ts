@@ -31,16 +31,65 @@ export interface ProfileDef {
 export type ActiveTool = "dns" | "speed" | "ping" | "leak" | "about";
 
 // --- Speed Test ---
-export interface SpeedResult {
+export interface StageResult {
+  name: string;
   downloadMbps: number;
   bytesReceived: number;
   elapsedMs: number;
+  error: string | null;
+}
+
+export interface LatencyResult {
+  minMs: number;
+  avgMs: number;
+  maxMs: number;
+  jitterMs: number;
+  packetLoss: number;
+  pingCount: number;
+  successCount: number;
+}
+
+export interface LatencyProgressEvent {
+  seq: number;
+  latencyMs: number | null;
+  success: boolean;
+}
+
+export interface SpeedTestResult {
+  latency: LatencyResult | null;
+  stages: StageResult[];
+  headlineMbps: number;
+  qualityScore: number;
+  qualityGrade: string;
+  cancelled: boolean;
+}
+
+export interface SpeedProgressEvent {
+  bytesReceived: number;
+  elapsedMs: number;
+  currentMbps: number;
+  stageName: string;
+}
+
+export interface SpeedHistoryEntry {
+  timestamp: string;
+  latency: LatencyResult | null;
+  stages: StageResult[];
+  headlineMbps: number;
+  qualityScore: number;
+  qualityGrade: string;
 }
 
 export interface SpeedTestState {
-  status: "idle" | "running" | "done" | "error";
-  result: SpeedResult | null;
+  status: "idle" | "running" | "done" | "error" | "cancelled";
+  result: SpeedTestResult | null;
   error: string | null;
+  currentMbps: number;
+  currentStage: string | null;
+  stageResults: StageResult[];
+  latencyResult: LatencyResult | null;
+  testPhase: "idle" | "latency" | "download";
+  pingProgress: number;
 }
 
 // --- Ping / Traceroute ---
