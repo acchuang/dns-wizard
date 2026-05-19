@@ -13,8 +13,8 @@
     "windows": [
       {
         "title": "DNS Wizard",
-        "width": 720,
-        "height": 580,
+        "width": 780,
+        "height": 600,
         "resizable": true,
         "decorations": true
       }

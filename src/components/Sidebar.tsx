@@ -22,6 +22,8 @@ const sidebarStyle: React.CSSProperties = {
   alignItems: "center",
   paddingTop: 16,
   gap: 4,
+  borderRight: "1px solid #1e293b",
+  boxSizing: "border-box",
 };
 
 const btnStyle = (active: boolean): React.CSSProperties => ({
