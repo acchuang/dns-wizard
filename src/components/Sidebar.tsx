@@ -22,6 +22,7 @@ const sidebarStyle: React.CSSProperties = {
   alignItems: "center",
   paddingTop: 16,
   gap: 4,
+  paddingLeft: 6,
   borderRight: "1px solid #1e293b",
   boxSizing: "border-box",
 };
