@@ -1,0 +1,61 @@
+import { Globe, Zap, Radio, SearchCheck } from "lucide-react";
+import { ActiveTool } from "../types";
+
+interface Props {
+  activeTool: ActiveTool;
+  onToolChange: (tool: ActiveTool) => void;
+}
+
+const tools: { id: ActiveTool; icon: typeof Globe; label: string }[] = [
+  { id: "dns", icon: Globe, label: "DNS" },
+  { id: "speed", icon: Zap, label: "Speed" },
+  { id: "ping", icon: Radio, label: "Ping" },
+  { id: "leak", icon: SearchCheck, label: "Leak" },
+];
+
+const sidebarStyle: React.CSSProperties = {
+  width: 48,
+  minHeight: "100%",
+  backgroundColor: "#0f172a",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  paddingTop: 16,
+  gap: 4,
+};
+
+const btnStyle = (active: boolean): React.CSSProperties => ({
+  width: 40,
+  height: 40,
+  borderRadius: 8,
+  border: "none",
+  backgroundColor: active ? "#7c3aed" : "transparent",
+  color: active ? "#fff" : "#64748b",
+  cursor: "pointer",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  transition: "background-color 0.2s",
+});
+
+function Sidebar({ activeTool, onToolChange }: Props) {
+  return (
+    <div style={sidebarStyle}>
+      {tools.map((tool) => {
+        const Icon = tool.icon;
+        return (
+          <button
+            key={tool.id}
+            style={btnStyle(activeTool === tool.id)}
+            onClick={() => onToolChange(tool.id)}
+            title={tool.label}
+          >
+            <Icon size={20} />
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+export default Sidebar;
