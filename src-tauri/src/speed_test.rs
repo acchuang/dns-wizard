@@ -2,6 +2,7 @@ use serde::{Serialize, Deserialize};
 use std::time::Instant;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct SpeedResult {
     pub download_mbps: f64,
     pub bytes_received: u64,

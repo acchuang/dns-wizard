@@ -4,6 +4,7 @@ use std::process::Command;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct PingResult {
     pub seq: u32,
     pub latency_ms: Option<f64>,
@@ -11,6 +12,7 @@ pub struct PingResult {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct HopResult {
     pub hop: u32,
     pub host: String,

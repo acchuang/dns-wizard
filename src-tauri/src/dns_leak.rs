@@ -3,6 +3,7 @@ use hickory_resolver::config::{ResolverConfig, ResolverOpts};
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct DnsLeakResult {
     pub configured_servers: Vec<String>,
     pub detected_servers: Vec<String>,
