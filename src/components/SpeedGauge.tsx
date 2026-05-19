@@ -54,6 +54,9 @@ function SpeedGauge({ result, status }: Props) {
         {status === "idle" && (
           <span style={{ fontSize: 14, color: "#64748b" }}>Mbps</span>
         )}
+        {status === "error" && (
+          <span style={{ fontSize: 14, color: "#ef4444" }}>Error</span>
+        )}
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { PingState, PingResult, HopResult } from "../types";
 import ResultTable from "./ResultTable";
@@ -53,22 +54,32 @@ const tabStyle = (active: boolean): React.CSSProperties => ({
 });
 
 function PingPanel({ state, setState }: Props) {
+  const cancelledRef = useRef(false);
+
   const runTest = async () => {
+    cancelledRef.current = false;
     setState((prev) => ({ ...prev, isRunning: true, results: [], error: null }));
     try {
       if (state.mode === "ping") {
         const results = await invoke<PingResult[]>("run_ping", { host: state.host, count: 5 });
-        setState((prev) => ({ ...prev, isRunning: false, results }));
+        if (!cancelledRef.current) {
+          setState((prev) => ({ ...prev, isRunning: false, results }));
+        }
       } else {
         const results = await invoke<HopResult[]>("run_traceroute", { host: state.host, maxHops: 20 });
-        setState((prev) => ({ ...prev, isRunning: false, results }));
+        if (!cancelledRef.current) {
+          setState((prev) => ({ ...prev, isRunning: false, results }));
+        }
       }
     } catch (e) {
-      setState((prev) => ({ ...prev, isRunning: false, error: String(e) }));
+      if (!cancelledRef.current) {
+        setState((prev) => ({ ...prev, isRunning: false, error: String(e) }));
+      }
     }
   };
 
   const cancel = () => {
+    cancelledRef.current = true;
     if (state.mode === "ping") {
       invoke("cancel_ping");
     } else {
@@ -137,6 +148,11 @@ function PingPanel({ state, setState }: Props) {
         ))}
       </div>
       {state.error && <p style={{ color: "#ef4444", fontSize: 13, margin: 0 }}>{state.error}</p>}
+      {!state.isRunning && !state.error && rows.length === 0 && (
+        <p style={{ color: "#64748b", fontSize: 13, margin: 0 }}>
+          {state.mode === "ping" ? "Click Run to ping a host" : "Click Run to trace the route to a host"}
+        </p>
+      )}
       {rows.length > 0 && (
         <ResultTable columns={state.mode === "ping" ? pingColumns : traceColumns} rows={rows} />
       )}

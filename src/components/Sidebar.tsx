@@ -49,6 +49,8 @@ function Sidebar({ activeTool, onToolChange }: Props) {
             style={btnStyle(activeTool === tool.id)}
             onClick={() => onToolChange(tool.id)}
             title={tool.label}
+            aria-label={tool.label}
+            aria-pressed={activeTool === tool.id}
           >
             <Icon size={20} />
           </button>

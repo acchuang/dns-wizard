@@ -49,9 +49,13 @@ function LeakPanel({ state, setState, configuredDns }: Props) {
     <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 24, gap: 16, color: "#e2e8f0" }}>
       <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>DNS Leak Test</h2>
 
+      {configuredDns.length === 0 && state.status !== "running" && (
+        <p style={{ fontSize: 13, color: "#eab308", margin: 0 }}>Apply a DNS profile first to detect leaks.</p>
+      )}
+
       <button
-        style={{ ...btnStyle, opacity: state.status === "running" ? 0.5 : 1 }}
-        disabled={state.status === "running"}
+        style={{ ...btnStyle, opacity: state.status === "running" || configuredDns.length === 0 ? 0.5 : 1, cursor: state.status === "running" || configuredDns.length === 0 ? "not-allowed" : "pointer" }}
+        disabled={state.status === "running" || configuredDns.length === 0}
         onClick={runTest}
       >
         {state.status === "running" ? "Testing..." : "Start Leak Test"}

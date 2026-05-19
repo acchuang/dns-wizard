@@ -150,11 +150,13 @@ async fn run_ping(host: String, count: u32) -> Result<Vec<PingResult>, String> {
     ping::run_ping(host, count).await
 }
 
-#[tauri::command]
-fn run_traceroute(host: String, max_hops: u32) -> Result<Vec<HopResult>, String> {
+#[tauri::command(rename_all = "camelCase")]
+async fn run_traceroute(host: String, max_hops: u32) -> Result<Vec<HopResult>, String> {
     let host = validate::validate_host(&host)?;
     let max_hops = validate::clamp_count(max_hops, 1, 30);
-    ping::run_traceroute_sync(host, max_hops)
+    tokio::task::spawn_blocking(move || ping::run_traceroute_sync(host, max_hops))
+        .await
+        .map_err(|e| format!("Task join error: {}", e))?
 }
 
 #[tauri::command]
@@ -167,7 +169,7 @@ fn cancel_traceroute() {
     ping::cancel_traceroute();
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "camelCase")]
 async fn run_dns_leak_test(configured_servers: Vec<String>) -> Result<dns_leak::DnsLeakResult, String> {
     dns_leak::run_dns_leak_test(configured_servers).await
 }

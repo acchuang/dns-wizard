@@ -50,11 +50,7 @@ pub async fn run_dns_leak_test(configured_servers: Vec<String>) -> Result<DnsLea
         let configured_set: std::collections::HashSet<String> = configured_servers.iter().cloned().collect();
         let detected_set: std::collections::HashSet<String> = detected.iter().cloned().collect();
 
-        // Leaking if ANY detected server is not in the configured set
-        let has_leak = detected_set.iter().any(|d| !configured_set.contains(d));
-        let has_match = detected_set.iter().any(|d| configured_set.contains(d));
-
-        Some(if has_leak && has_match { false } else if has_leak { true } else { false })
+        Some(detected_set.iter().any(|d| !configured_set.contains(d)))
     };
 
     Ok(DnsLeakResult {
