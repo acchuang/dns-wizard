@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { WizardState, Profile, DnsProvider, ConfigResult } from "../types";
+import { WizardState, Profile, DnsProvider, ConfigResult, NetworkInfo } from "../types";
 import ProgressDots from "./ProgressDots";
 import Step1_ChooseProfile from "./Step1_ChooseProfile";
 import Step2_Benchmark from "./Step2_Benchmark";
@@ -25,7 +25,35 @@ interface Props {
 
 function DnsPanel({ onDnsApplied }: Props) {
   const [state, setState] = useState<WizardState>(initialState);
+  const [networkInfo, setNetworkInfo] = useState<NetworkInfo | null>(null);
+  const [isFlushing, setIsFlushing] = useState(false);
   const benchmarkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const refreshNetworkInfo = useCallback(() => {
+    invoke<NetworkInfo>("get_current_dns")
+      .then(setNetworkInfo)
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    refreshNetworkInfo();
+    return () => {
+      if (benchmarkTimeoutRef.current) {
+        clearTimeout(benchmarkTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleFlushCache = useCallback(async () => {
+    if (isFlushing) return;
+    setIsFlushing(true);
+    try {
+      await invoke<ConfigResult>("flush_dns_cache");
+      refreshNetworkInfo();
+    } catch {} finally {
+      setIsFlushing(false);
+    }
+  }, [isFlushing, refreshNetworkInfo]);
 
   const selectProfile = useCallback((profile: Profile) => {
     setState((prev) => ({ ...prev, selectedProfile: profile, step: 2 }));
@@ -66,18 +94,15 @@ function DnsPanel({ onDnsApplied }: Props) {
     }, 30000);
 
     try {
-      console.log("[DNS Wizard] Starting benchmark for profile:", state.selectedProfile);
       const results = await invoke<DnsProvider[]>("run_benchmark", {
         profile: state.selectedProfile,
       });
-      console.log("[DNS Wizard] Benchmark results:", results);
       if (benchmarkTimeoutRef.current) {
         clearTimeout(benchmarkTimeoutRef.current);
         benchmarkTimeoutRef.current = null;
       }
       setBenchmarkResults(results);
     } catch (e) {
-      console.error("[DNS Wizard] Benchmark error:", e);
       if (benchmarkTimeoutRef.current) {
         clearTimeout(benchmarkTimeoutRef.current);
         benchmarkTimeoutRef.current = null;
@@ -85,14 +110,6 @@ function DnsPanel({ onDnsApplied }: Props) {
       setError(String(e));
     }
   }, [state.selectedProfile, setRunning, setError, setBenchmarkResults]);
-
-  useEffect(() => {
-    return () => {
-      if (benchmarkTimeoutRef.current) {
-        clearTimeout(benchmarkTimeoutRef.current);
-      }
-    };
-  }, []);
 
   const selectResult = useCallback(
     (ip: string, secondaryIp: string) => {
@@ -117,6 +134,7 @@ function DnsPanel({ onDnsApplied }: Props) {
           isApplying: false,
         }));
         onDnsApplied?.(state.selectedIp, state.selectedSecondaryIp);
+        refreshNetworkInfo();
       } else {
         setState((prev) => ({ ...prev, error: result.message, isApplying: false }));
       }
@@ -133,6 +151,7 @@ function DnsPanel({ onDnsApplied }: Props) {
       if (result.success) {
         setState((prev) => ({ ...prev, applied: false, isApplying: false }));
         onDnsApplied?.(null, null);
+        refreshNetworkInfo();
       } else {
         setState((prev) => ({ ...prev, error: result.message, isApplying: false }));
       }
@@ -158,6 +177,7 @@ function DnsPanel({ onDnsApplied }: Props) {
             onSelect={selectProfile}
             applied={state.applied}
             appliedProfile={state.appliedProfile}
+            networkInfo={networkInfo}
           />
         )}
         {state.step === 2 && (
@@ -175,9 +195,11 @@ function DnsPanel({ onDnsApplied }: Props) {
             error={state.error}
             applied={state.applied}
             isApplying={state.isApplying}
+            isFlushing={isFlushing}
             onSelect={selectResult}
             onAuthorizeApply={authorizeApply}
             onAuthorizeRestore={authorizeRestore}
+            onFlushCache={handleFlushCache}
             onStartOver={startOver}
           />
         )}

@@ -7,6 +7,13 @@ pub struct ConfigResult {
     pub message: String,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct NetworkInfo {
+    pub service: String,
+    pub servers: Vec<String>,
+}
+
 pub fn detect_network_service() -> Result<String, String> {
     let route_output = std::process::Command::new("route")
         .args(["-n", "get", "default"])
@@ -67,7 +74,20 @@ pub fn detect_network_service() -> Result<String, String> {
     Err(format!("Could not find network service for interface {}", interface))
 }
 
-#[cfg(test)]
+pub fn get_current_dns() -> Result<NetworkInfo, String> {
+    let service = detect_network_service()?;
+    let output = std::process::Command::new("networksetup")
+        .args(["-getdnsservers", &service])
+        .output()
+        .map_err(|e| format!("Failed to run networksetup: {}", e))?;
+    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    let servers = if stdout.contains("There aren't any DNS Servers set") || stdout.is_empty() {
+        vec![]
+    } else {
+        stdout.lines().map(|l| l.trim().to_string()).filter(|l| !l.is_empty()).collect()
+    };
+    Ok(NetworkInfo { service, servers })
+}
 mod tests {
     use super::*;
 

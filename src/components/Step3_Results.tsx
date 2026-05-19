@@ -7,9 +7,11 @@ interface Props {
   error: string | null;
   applied: boolean;
   isApplying: boolean;
+  isFlushing: boolean;
   onSelect: (ip: string, secondaryIp: string) => void;
   onAuthorizeApply: () => void;
   onAuthorizeRestore: () => void;
+  onFlushCache: () => void;
   onStartOver: () => void;
 }
 
@@ -46,6 +48,15 @@ const restoreBtn: React.CSSProperties = {
   border: "1px solid #334155",
 };
 
+const flushBtn: React.CSSProperties = {
+  ...btnBase,
+  backgroundColor: "transparent",
+  color: "#64748b",
+  border: "1px solid #334155",
+  fontSize: 13,
+  padding: "8px 16px",
+};
+
 const startOverBtn: React.CSSProperties = {
   ...btnBase,
   backgroundColor: "transparent",
@@ -59,9 +70,11 @@ function Step3_Results({
   error,
   applied,
   isApplying,
+  isFlushing,
   onSelect,
   onAuthorizeApply,
   onAuthorizeRestore,
+  onFlushCache,
   onStartOver,
 }: Props) {
   const reachable = useMemo(
@@ -147,9 +160,14 @@ function Step3_Results({
       )}
 
       {applied && !isApplying && (
-        <button style={restoreBtn} onClick={onAuthorizeRestore} disabled={isApplying}>
-          Restore Default DNS
-        </button>
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
+          <button style={restoreBtn} onClick={onAuthorizeRestore}>
+            Restore Default DNS
+          </button>
+          <button style={flushBtn} onClick={onFlushCache} disabled={isFlushing}>
+            {isFlushing ? "Flushing..." : "Flush DNS Cache"}
+          </button>
+        </div>
       )}
 
       <button style={startOverBtn} onClick={onStartOver}>

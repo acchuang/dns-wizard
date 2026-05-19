@@ -9,6 +9,11 @@ export interface ConfigResult {
   message: string;
 }
 
+export interface NetworkInfo {
+  service: string;
+  servers: string[];
+}
+
 // --- Expanded profiles ---
 export type Profile =
   | "Gamer"

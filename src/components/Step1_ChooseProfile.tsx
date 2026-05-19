@@ -1,4 +1,4 @@
-import { Profile, ProfileDef } from "../types";
+import { Profile, ProfileDef, NetworkInfo } from "../types";
 import ProfileCard from "./ProfileCard";
 
 const profiles: ProfileDef[] = [
@@ -41,6 +41,7 @@ interface Props {
   onSelect: (profile: Profile) => void;
   applied: boolean;
   appliedProfile: Profile | null;
+  networkInfo: NetworkInfo | null;
 }
 
 const wrapperStyle: React.CSSProperties = {
@@ -62,7 +63,7 @@ const gridStyle: React.CSSProperties = {
   padding: 2,
 };
 
-function Step1_ChooseProfile({ onSelect, applied, appliedProfile }: Props) {
+function Step1_ChooseProfile({ onSelect, applied, appliedProfile, networkInfo }: Props) {
   return (
     <div style={wrapperStyle}>
       <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>Choose a Profile</h1>
@@ -73,6 +74,17 @@ function Step1_ChooseProfile({ onSelect, applied, appliedProfile }: Props) {
         <p style={{ fontSize: 12, color: "#10b981", margin: 0 }}>
           DNS is active ({appliedProfile} profile applied)
         </p>
+      )}
+      {networkInfo && (
+        <div style={{ fontSize: 12, color: "#64748b", margin: 0, textAlign: "center" }}>
+          <span>Active: {networkInfo.service}</span>
+          {networkInfo.servers.length > 0 && (
+            <span> · DNS: {networkInfo.servers.join(", ")}</span>
+          )}
+          {networkInfo.servers.length === 0 && (
+            <span> · DNS: DHCP (automatic)</span>
+          )}
+        </div>
       )}
       <div style={gridStyle}>
         {profiles.map((p) => (

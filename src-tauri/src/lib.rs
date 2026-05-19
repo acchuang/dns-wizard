@@ -10,7 +10,7 @@ mod validate;
 use dns_bench::{benchmark_dns, DnsProvider};
 use ping::{PingResult, HopResult};
 use profiles::{get_profile_providers, UserProfile};
-use sys_config::{detect_network_service, ConfigResult};
+use sys_config::{detect_network_service, ConfigResult, NetworkInfo};
 
 #[tauri::command]
 async fn run_benchmark(profile: String) -> Result<Vec<DnsProvider>, String> {
@@ -181,6 +181,40 @@ fn cancel_traceroute() {
     ping::cancel_traceroute();
 }
 
+#[tauri::command]
+async fn get_current_dns() -> Result<NetworkInfo, String> {
+    sys_config::get_current_dns()
+}
+
+#[tauri::command]
+async fn flush_dns_cache(app: tauri::AppHandle<tauri::Wry>) -> Result<ConfigResult, String> {
+    use tauri_plugin_shell::ShellExt;
+    let script = "do shell script \"dscacheutil -flushcache && killall -HUP mDNSResponder\" with administrator privileges".to_string();
+    let output = app
+        .shell()
+        .command("osascript")
+        .args(["-e", &script])
+        .output()
+        .await
+        .map_err(|e| format!("Failed to execute osascript: {}", e))?;
+    if output.status.success() {
+        Ok(ConfigResult {
+            success: true,
+            message: "DNS cache flushed successfully".to_string(),
+        })
+    } else {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        Ok(ConfigResult {
+            success: false,
+            message: if stderr.contains("User canceled") || stderr.contains("-128") {
+                "Authorization cancelled.".to_string()
+            } else {
+                format!("Failed to flush DNS cache: {}", stderr.trim())
+            },
+        })
+    }
+}
+
 #[tauri::command(rename_all = "camelCase")]
 async fn run_dns_leak_test(configured_servers: Vec<String>) -> Result<dns_leak::DnsLeakResult, String> {
     dns_leak::run_dns_leak_test(configured_servers).await
@@ -202,6 +236,8 @@ pub fn run() {
             cancel_ping,
             cancel_traceroute,
             run_dns_leak_test,
+            get_current_dns,
+            flush_dns_cache,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
