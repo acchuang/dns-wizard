@@ -1,5 +1,8 @@
 import { useMemo } from "react";
 import { DnsProvider, UNREACHABLE_SENTINEL } from "../types";
+import { useSimpleMode } from "./SimpleModeContext";
+import ExportButton from "./ExportButton";
+import Tooltip from "./Tooltip";
 
 interface Props {
   results: DnsProvider[];
@@ -77,6 +80,8 @@ function Step3_Results({
   onFlushCache,
   onStartOver,
 }: Props) {
+  const { simpleMode } = useSimpleMode();
+
   const reachable = useMemo(
     () => results.filter((r) => r.latency !== null && r.latency < UNREACHABLE_SENTINEL),
     [results]
@@ -91,6 +96,14 @@ function Step3_Results({
     return others.length > 0 ? others[0].ip : "";
   };
 
+  const exportData = useMemo(() => {
+    return results.map((r) => ({
+      Provider: r.name,
+      IP: r.ip,
+      LatencyMs: r.latency !== null && r.latency < UNREACHABLE_SENTINEL ? r.latency : "Unreachable",
+    }));
+  }, [results]);
+
   return (
     <div style={wrapperStyle}>
       <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>
@@ -104,43 +117,74 @@ function Step3_Results({
       )}
 
       {results.length > 0 && !allUnreachable && (
-        <table style={{ width: "100%", maxWidth: 440, borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ borderBottom: "1px solid #334155" }}>
-              <th style={thStyle}>Provider</th>
-              <th style={thStyle}>Latency</th>
-              <th style={thStyle} />
-            </tr>
-          </thead>
-          <tbody>
-            {results.map((r) => (
-              <tr
+        simpleMode ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%", maxWidth: 440 }}>
+            {reachable.slice(0, 5).map((r) => (
+              <div
                 key={r.ip}
-                style={{
-                  borderBottom: "1px solid #1e293b",
-                  backgroundColor:
-                    selectedIp === r.ip ? "rgba(124, 58, 237, 0.15)" : "transparent",
-                  cursor: "pointer",
-                  transition: "background-color 0.15s",
-                }}
                 onClick={() => onSelect(r.ip, secondaryFor(r.ip))}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "10px 16px",
+                  backgroundColor: selectedIp === r.ip ? "rgba(124, 58, 237, 0.15)" : "#16213e",
+                  borderRadius: 8,
+                  cursor: "pointer",
+                }}
               >
-                <td style={tdStyle}>{r.name}</td>
-                <td style={{ ...tdStyle, fontFamily: "monospace" }}>
-                  {r.latency === null
-                    ? "--"
-                    : r.latency >= UNREACHABLE_SENTINEL
-                    ? <span style={{ color: "#ef4444" }}>Unreachable</span>
-                    : `${r.latency}ms`}
-                </td>
-                <td style={tdStyle}>
-                  {selectedIp === r.ip && <span style={{ color: "#7c3aed" }}>Selected</span>}
-                </td>
-              </tr>
+                <span style={{ fontSize: 14, color: "#e2e8f0" }}>{r.name}</span>
+                <span style={{ fontSize: 14, fontWeight: 600, color: r.latency! < 20 ? "#22c55e" : r.latency! < 50 ? "#eab308" : "#ef4444" }}>
+                  {r.latency}ms
+                </span>
+              </div>
             ))}
-          </tbody>
-        </table>
+          </div>
+        ) : (
+          <table style={{ width: "100%", maxWidth: 440, borderCollapse: "collapse" }}>
+            <thead>
+              <tr style={{ borderBottom: "1px solid #334155" }}>
+                <th style={thStyle}>Provider</th>
+                <th style={thStyle}>
+                  <Tooltip text="How long it takes for the DNS server to respond. Lower is better.">
+                    Latency
+                  </Tooltip>
+                </th>
+                <th style={thStyle} />
+              </tr>
+            </thead>
+            <tbody>
+              {results.map((r) => (
+                <tr
+                  key={r.ip}
+                  style={{
+                    borderBottom: "1px solid #1e293b",
+                    backgroundColor:
+                      selectedIp === r.ip ? "rgba(124, 58, 237, 0.15)" : "transparent",
+                    cursor: "pointer",
+                    transition: "background-color 0.15s",
+                  }}
+                  onClick={() => onSelect(r.ip, secondaryFor(r.ip))}
+                >
+                  <td style={tdStyle}>{r.name}</td>
+                  <td style={{ ...tdStyle, fontFamily: "monospace" }}>
+                    {r.latency === null
+                      ? "--"
+                      : r.latency >= UNREACHABLE_SENTINEL
+                      ? <span style={{ color: "#ef4444" }}>Unreachable</span>
+                      : `${r.latency}ms`}
+                  </td>
+                  <td style={tdStyle}>
+                    {selectedIp === r.ip && <span style={{ color: "#7c3aed" }}>Selected</span>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )
       )}
+
+      <ExportButton data={exportData} filename="dns-benchmark" label="Export" />
 
       {error && (
         <p style={{ fontSize: 13, color: "#ef4444", margin: 0, textAlign: "center" }}>

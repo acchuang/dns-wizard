@@ -1,1 +1,1 @@
-{"default":{"identifier":"default","description":"Default capability for the DNS Wizard app","local":true,"windows":["main"],"permissions":["core:default","shell:allow-execute","shell:allow-spawn"]}}
+{"default":{"identifier":"default","description":"Default capability for the DNS Wizard app","local":true,"windows":["main"],"permissions":["core:default","shell:allow-execute","shell:allow-spawn","dialog:default"]}}

@@ -33,7 +33,13 @@ fn is_private_ip(ip: &IpAddr) -> bool {
             || (octets[0] == 192 && octets[1] == 168)
             || (octets[0] == 169 && octets[1] == 254)
         }
-        IpAddr::V6(_) => false,
+        IpAddr::V6(v6) => {
+            let segments = v6.segments();
+            v6.is_loopback()
+            || v6.is_unicast_link_local()
+            || (segments[0] & 0xfe00) == 0xfc00
+            || v6.is_multicast()
+        }
     }
 }
 
@@ -50,6 +56,7 @@ mod tests {
         assert!(validate_host("cloudflare.com").is_ok());
         assert!(validate_host("1.1.1.1").is_ok());
         assert!(validate_host("8.8.8.8").is_ok());
+        assert!(validate_host("2606:4700:4700::1111").is_ok());
     }
 
     #[test]
@@ -59,5 +66,19 @@ mod tests {
         assert!(validate_host("127.0.0.1").is_err());
         assert!(validate_host("10.0.0.1").is_err());
         assert!(validate_host("192.168.1.1").is_err());
+    }
+
+    #[test]
+    fn test_ipv6_private() {
+        assert!(validate_host("::1").is_err()); // loopback
+        assert!(validate_host("fe80::1").is_err()); // link-local
+        assert!(validate_host("fc00::1").is_err()); // unique local
+        assert!(validate_host("fd12:3456::1").is_err()); // unique local
+    }
+
+    #[test]
+    fn test_ipv6_public() {
+        assert!(validate_host("2606:4700:4700::1111").is_ok()); // Cloudflare
+        assert!(validate_host("2001:4860:4860::8888").is_ok()); // Google
     }
 }

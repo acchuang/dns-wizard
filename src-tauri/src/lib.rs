@@ -9,8 +9,27 @@ mod validate;
 
 use dns_bench::{benchmark_dns, DnsProvider};
 use ping::{PingResult, HopResult};
-use profiles::{get_profile_providers, UserProfile};
+use profiles::{get_profile_providers, get_all_providers, UserProfile};
 use sys_config::{detect_network_service, ConfigResult, NetworkInfo};
+use serde::{Serialize, Deserialize};
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct QuickFixResult {
+    pub provider_name: String,
+    pub provider_ip: String,
+    pub latency_ms: u128,
+    pub profile: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct PublicIpInfo {
+    pub ip: String,
+    pub isp: String,
+    pub city: String,
+    pub country: String,
+}
 
 #[tauri::command]
 async fn run_benchmark(profile: String) -> Result<Vec<DnsProvider>, String> {
@@ -28,6 +47,24 @@ async fn run_benchmark(profile: String) -> Result<Vec<DnsProvider>, String> {
     let providers = get_profile_providers(profile_enum);
     let results = benchmark_dns(providers).await;
     Ok(results)
+}
+
+#[tauri::command]
+async fn fix_my_internet() -> Result<QuickFixResult, String> {
+    let providers = get_all_providers();
+    let results = benchmark_dns(providers).await;
+    let best = results.iter()
+        .filter(|r| r.latency.is_some() && r.latency.unwrap() < 99999)
+        .min_by_key(|r| r.latency.unwrap());
+    match best {
+        Some(provider) => Ok(QuickFixResult {
+            provider_name: provider.name.clone(),
+            provider_ip: provider.ip.clone(),
+            latency_ms: provider.latency.unwrap(),
+            profile: String::new(),
+        }),
+        None => Err("No DNS servers responded. Check your internet connection.".to_string()),
+    }
 }
 
 #[tauri::command]
@@ -220,12 +257,63 @@ async fn run_dns_leak_test(configured_servers: Vec<String>) -> Result<dns_leak::
     dns_leak::run_dns_leak_test(configured_servers).await
 }
 
+#[tauri::command]
+async fn get_public_ip() -> Result<PublicIpInfo, String> {
+    let client = reqwest::Client::builder()
+        .user_agent("DNSWizard/1.0")
+        .timeout(std::time::Duration::from_secs(5))
+        .build()
+        .map_err(|e| format!("Failed to create HTTP client: {}", e))?;
+
+    let ip = client.get("https://api.ipify.org")
+        .send()
+        .await
+        .map_err(|e| format!("Failed to fetch IP: {}", e))?
+        .text()
+        .await
+        .map_err(|e| format!("Failed to read IP response: {}", e))?
+        .trim()
+        .to_string();
+
+    let response = client.get("https://ipinfo.io/")
+        .query(&[("token", "demo")])
+        .send()
+        .await;
+    let (isp_name, city, country) = match response {
+        Ok(resp) => {
+            let body = resp.text().await.unwrap_or_default();
+            let v: serde_json::Value = serde_json::from_str(&body).unwrap_or_default();
+            (
+                v["org"].as_str().unwrap_or("Unknown").to_string(),
+                v["city"].as_str().unwrap_or("").to_string(),
+                v["country"].as_str().unwrap_or("").to_string(),
+            )
+        }
+        Err(_) => ("Unknown".to_string(), String::new(), String::new()),
+    };
+
+    Ok(PublicIpInfo {
+        ip,
+        isp: isp_name,
+        city,
+        country,
+    })
+}
+
+#[tauri::command]
+async fn save_file(path: String, content: String) -> Result<(), String> {
+    std::fs::write(&path, content)
+        .map_err(|e| format!("Failed to write file: {}", e))
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             run_benchmark,
+            fix_my_internet,
             execute_admin_apply,
             execute_admin_restore,
             run_speed_test,
@@ -238,6 +326,8 @@ pub fn run() {
             run_dns_leak_test,
             get_current_dns,
             flush_dns_cache,
+            get_public_ip,
+            save_file,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

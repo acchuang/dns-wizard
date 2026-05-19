@@ -14,6 +14,20 @@ export interface NetworkInfo {
   servers: string[];
 }
 
+export interface QuickFixResult {
+  providerName: string;
+  providerIp: string;
+  latencyMs: number;
+  profile: string;
+}
+
+export interface PublicIpInfo {
+  ip: string;
+  isp: string;
+  city: string;
+  country: string;
+}
+
 // --- Expanded profiles ---
 export type Profile =
   | "Gamer"
@@ -33,7 +47,7 @@ export interface ProfileDef {
 }
 
 // --- Navigation ---
-export type ActiveTool = "dns" | "speed" | "ping" | "leak" | "about";
+export type ActiveTool = "dns" | "speed" | "ping" | "leak" | "health" | "about";
 
 // --- Speed Test ---
 export interface StageResult {

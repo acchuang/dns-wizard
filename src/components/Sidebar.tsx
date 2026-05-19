@@ -1,5 +1,8 @@
-import { Globe, Zap, Radio, SearchCheck, Info } from "lucide-react";
-import { ActiveTool } from "../types";
+import { useState, useEffect } from "react";
+import { invoke } from "@tauri-apps/api/core";
+import { Globe, Zap, Radio, SearchCheck, Heart, Info, Eye, EyeOff } from "lucide-react";
+import { ActiveTool, PublicIpInfo } from "../types";
+import { useSimpleMode } from "./SimpleModeContext";
 
 interface Props {
   activeTool: ActiveTool;
@@ -11,6 +14,7 @@ const tools: { id: ActiveTool; icon: typeof Globe; label: string }[] = [
   { id: "speed", icon: Zap, label: "Speed" },
   { id: "ping", icon: Radio, label: "Ping" },
   { id: "leak", icon: SearchCheck, label: "Leak" },
+  { id: "health", icon: Heart, label: "Health" },
 ];
 
 const sidebarStyle: React.CSSProperties = {
@@ -20,7 +24,7 @@ const sidebarStyle: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
-  paddingTop: 16,
+  paddingTop: 8,
   gap: 4,
   borderRight: "1px solid #1e293b",
   boxSizing: "border-box",
@@ -44,8 +48,41 @@ const btnStyle = (active: boolean): React.CSSProperties => ({
 });
 
 function Sidebar({ activeTool, onToolChange }: Props) {
+  const { simpleMode, toggleSimpleMode } = useSimpleMode();
+  const [ipInfo, setIpInfo] = useState<PublicIpInfo | null>(null);
+
+  useEffect(() => {
+    invoke<PublicIpInfo>("get_public_ip")
+      .then(setIpInfo)
+      .catch(() => {});
+    const interval = setInterval(() => {
+      invoke<PublicIpInfo>("get_public_ip")
+        .then(setIpInfo)
+        .catch(() => {});
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div style={sidebarStyle}>
+      {ipInfo && (
+        <div
+          style={{
+            width: 36,
+            padding: "4px 0",
+            textAlign: "center" as const,
+            fontSize: 8,
+            color: "#475569",
+            lineHeight: 1.2,
+            marginBottom: 2,
+            borderBottom: "1px solid #1e293b",
+            paddingBottom: 4,
+          }}
+          title={`IP: ${ipInfo.ip}\nISP: ${ipInfo.isp}\n${ipInfo.city}, ${ipInfo.country}`}
+        >
+          <div style={{ fontSize: 9, fontWeight: 600, color: "#94a3b8" }}>{ipInfo.ip}</div>
+        </div>
+      )}
       {tools.map((tool) => {
         const Icon = tool.icon;
         return (
@@ -62,6 +99,18 @@ function Sidebar({ activeTool, onToolChange }: Props) {
         );
       })}
       <div style={{ flex: 1 }} />
+      <button
+        style={{
+          ...btnStyle(false),
+          backgroundColor: simpleMode ? "#7c3aed33" : "transparent",
+          color: simpleMode ? "#a78bfa" : "#475569",
+        }}
+        onClick={toggleSimpleMode}
+        title={simpleMode ? "Show technical details" : "Hide technical details"}
+        aria-label={simpleMode ? "Switch to detailed mode" : "Switch to simple mode"}
+      >
+        {simpleMode ? <EyeOff size={16} /> : <Eye size={16} />}
+      </button>
       <button
         style={btnStyle(activeTool === "about")}
         onClick={() => onToolChange("about")}

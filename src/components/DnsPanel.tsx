@@ -1,10 +1,12 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { WizardState, Profile, DnsProvider, ConfigResult, NetworkInfo } from "../types";
+import { WizardState, Profile, DnsProvider, ConfigResult, NetworkInfo, QuickFixResult } from "../types";
+import { useSimpleMode } from "./SimpleModeContext";
 import ProgressDots from "./ProgressDots";
 import Step1_ChooseProfile from "./Step1_ChooseProfile";
 import Step2_Benchmark from "./Step2_Benchmark";
 import Step3_Results from "./Step3_Results";
+import Tooltip from "./Tooltip";
 
 const initialState: WizardState = {
   step: 1,
@@ -27,7 +29,13 @@ function DnsPanel({ onDnsApplied }: Props) {
   const [state, setState] = useState<WizardState>(initialState);
   const [networkInfo, setNetworkInfo] = useState<NetworkInfo | null>(null);
   const [isFlushing, setIsFlushing] = useState(false);
+  const [quickFix, setQuickFix] = useState<QuickFixResult | null>(null);
+  const [quickFixRunning, setQuickFixRunning] = useState(false);
+  const [quickFixApplying, setQuickFixApplying] = useState(false);
+  const [quickFixApplied, setQuickFixApplied] = useState(false);
+  const [quickFixError, setQuickFixError] = useState<string | null>(null);
   const benchmarkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { simpleMode } = useSimpleMode();
 
   const refreshNetworkInfo = useCallback(() => {
     invoke<NetworkInfo>("get_current_dns")
@@ -111,6 +119,41 @@ function DnsPanel({ onDnsApplied }: Props) {
     }
   }, [state.selectedProfile, setRunning, setError, setBenchmarkResults]);
 
+  const handleQuickFix = useCallback(async () => {
+    setQuickFixRunning(true);
+    setQuickFixError(null);
+    try {
+      const result = await invoke<QuickFixResult>("fix_my_internet");
+      setQuickFix(result);
+    } catch (e) {
+      setQuickFixError(String(e));
+    } finally {
+      setQuickFixRunning(false);
+    }
+  }, []);
+
+  const handleQuickFixApply = useCallback(async () => {
+    if (!quickFix || quickFixApplying) return;
+    setQuickFixApplying(true);
+    try {
+      const result = await invoke<ConfigResult>("execute_admin_apply", {
+        primary: quickFix.providerIp,
+        secondary: "",
+      });
+      if (result.success) {
+        setQuickFixApplied(true);
+        onDnsApplied?.(quickFix.providerIp, null);
+        refreshNetworkInfo();
+      } else {
+        setQuickFixError(result.message);
+      }
+    } catch (e) {
+      setQuickFixError(String(e));
+    } finally {
+      setQuickFixApplying(false);
+    }
+  }, [quickFix, quickFixApplying]);
+
   const selectResult = useCallback(
     (ip: string, secondaryIp: string) => {
       setState((prev) => ({ ...prev, selectedIp: ip, selectedSecondaryIp: secondaryIp }));
@@ -170,6 +213,53 @@ function DnsPanel({ onDnsApplied }: Props) {
 
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 24, overflow: "hidden" }}>
+      <div style={{ marginBottom: 16, padding: 16, backgroundColor: "#16213e", borderRadius: 10, display: "flex", flexDirection: "column", gap: 8 }}>
+        <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: "#e2e8f0" }}>
+          <Tooltip text="Benchmarks all DNS providers and applies the fastest one automatically — no need to pick a profile.">
+            Quick Fix
+          </Tooltip>
+        </h3>
+        {simpleMode ? (
+          <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>One click to optimize your DNS for speed.</p>
+        ) : (
+          <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>Benchmarks all providers and applies the fastest one.</p>
+        )}
+        <button
+          onClick={handleQuickFix}
+          disabled={quickFixRunning || quickFixApplying}
+          style={{
+            padding: "10px 24px",
+            borderRadius: 8,
+            border: "none",
+            fontSize: 14,
+            fontWeight: 600,
+            cursor: quickFixRunning || quickFixApplying ? "not-allowed" : "pointer",
+            backgroundColor: "#7c3aed",
+            color: "#fff",
+            opacity: quickFixRunning || quickFixApplying ? 0.6 : 1,
+          }}
+        >
+          {quickFixRunning ? "Testing..." : "Fix My Internet"}
+        </button>
+        {quickFixError && <p style={{ color: "#ef4444", fontSize: 13, margin: 0 }}>{quickFixError}</p>}
+        {quickFix && !quickFixRunning && !quickFixError && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 4 }}>
+            <p style={{ fontSize: 14, color: "#10b981", margin: 0, fontWeight: 600 }}>
+              Fastest: {quickFix.providerName} ({quickFix.providerIp}) — {quickFix.latencyMs}ms
+            </p>
+            {!quickFixApplied && (
+              <button
+                onClick={handleQuickFixApply}
+                disabled={quickFixApplying}
+                style={{ padding: "8px 16px", borderRadius: 6, border: "1px solid #334155", backgroundColor: "transparent", color: "#94a3b8", fontSize: 13, cursor: "pointer", width: "fit-content" }}
+              >
+                {quickFixApplying ? "Authorizing..." : `Apply ${quickFix.providerName}`}
+              </button>
+            )}
+            {quickFixApplied && <p style={{ fontSize: 13, color: "#10b981", margin: 0 }}>DNS applied successfully!</p>}
+          </div>
+        )}
+      </div>
       <ProgressDots step={state.step} applied={state.applied} />
       <div style={{ width: "100%", flex: 1, display: "flex", overflow: "hidden" }}>
         {state.step === 1 && (

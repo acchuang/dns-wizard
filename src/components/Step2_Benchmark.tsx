@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Profile } from "../types";
+import Tooltip from "./Tooltip";
 
 interface Props {
   profile: Profile | null;
@@ -53,7 +54,11 @@ function Step2_Benchmark({ profile, isRunning, error, onStart }: Props) {
 
   return (
     <div style={wrapperStyle}>
-      <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>Benchmarking</h1>
+      <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>
+        <Tooltip text="Benchmarking sends DNS queries to each provider and measures how long they take to respond.">
+          Benchmarking
+        </Tooltip>
+      </h1>
       <p style={{ fontSize: 14, color: "#94a3b8", margin: 0, textAlign: "center" }}>
         Testing DNS servers for the {profile} profile...
       </p>
