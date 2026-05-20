@@ -33,13 +33,152 @@ button:focus, a:focus, input:focus, select:focus {
 }
 
 .speed-gauge-tick line {
-  stroke: #475569;
+  stroke: var(--text-tertiary);
   stroke-width: 1.5;
 }
 
 .speed-gauge-tick text {
-  fill: #64748b;
+  fill: var(--text-tertiary);
   font-size: 11px;
+}
+
+.speed-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 16px;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+.speed-grade-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.speed-grade-tile {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--tile-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 800;
+  font-size: 22px;
+}
+
+.speed-grade-tile.excellent { background: linear-gradient(135deg, var(--success), #059669); }
+.speed-grade-tile.great { background: linear-gradient(135deg, var(--success), #059669); }
+.speed-grade-tile.good { background: linear-gradient(135deg, var(--success), #059669); }
+.speed-grade-tile.fair { background: linear-gradient(135deg, var(--warning), #c2410c); }
+.speed-grade-tile.poor { background: linear-gradient(135deg, var(--warning), #c2410c); }
+.speed-grade-tile.bad { background: linear-gradient(135deg, var(--danger), #dc2626); }
+.speed-grade-tile.empty { background: var(--bg-input); color: var(--text-tertiary); font-size: 14px; }
+
+.speed-grade-label {
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.speed-grade-detail {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.speed-metric-tiles {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+  max-width: 380px;
+}
+
+.speed-metric-tile {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--tile-radius);
+  padding: 10px;
+  text-align: center;
+}
+
+.speed-metric-value {
+  font-weight: 800;
+  font-size: 16px;
+}
+
+.speed-metric-label {
+  color: var(--text-tertiary);
+  font-size: 8px;
+  margin-top: 2px;
+}
+
+.speed-stage-bars {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.speed-stage-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+}
+
+.speed-stage-bar-row .stage-name {
+  width: 32px;
+  color: var(--text-tertiary);
+}
+
+.speed-stage-bar-row .stage-value {
+  width: 45px;
+  text-align: right;
+  color: var(--text-secondary);
+}
+
+.speed-stage-bar-track {
+  flex: 1;
+  height: 5px;
+  background: var(--bg-input);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.speed-stage-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.speed-history-toggle {
+  width: 100%;
+  max-width: 380px;
+  margin-top: 4px;
+}
+
+.speed-history-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.speed-history-clear {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 4px 0;
+  text-align: left;
+  margin-top: 2px;
 }
 
 .tooltip-wrapper {

@@ -8,7 +8,7 @@ import {
 import { useSimpleMode } from "./SimpleModeContext";
 import SpeedGauge from "./SpeedGauge";
 import ExportButton from "./ExportButton";
-import Tooltip from "./Tooltip";
+
 
 interface Props {
   state: SpeedTestState;
@@ -43,26 +43,14 @@ function formatTimestamp(iso: string): string {
     d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
 }
 
-const btnBase: React.CSSProperties = {
-  padding: "10px 24px",
-  borderRadius: 8,
-  border: "none",
-  fontSize: 14,
-  fontWeight: 600,
-  cursor: "pointer",
-};
-
-function getBarColor(mbps: number): string {
-  if (mbps >= 250) return "#06b6d4";
-  if (mbps >= 50) return "#22c55e";
-  if (mbps >= 10) return "#eab308";
-  return "#ef4444";
-}
-
-function getGradeColor(grade: string): string {
-  if (grade === "A+" || grade === "A") return "#22c55e";
-  if (grade === "B") return "#eab308";
-  return "#ef4444";
+function getGradeClass(grade: string): string {
+  if (grade === "A+") return "excellent";
+  if (grade === "A") return "great";
+  if (grade === "B") return "good";
+  if (grade === "C") return "fair";
+  if (grade === "D") return "poor";
+  if (grade === "F") return "bad";
+  return "empty";
 }
 
 function getGradeLabel(grade: string): string {
@@ -72,24 +60,6 @@ function getGradeLabel(grade: string): string {
   if (grade === "C") return "Fair";
   if (grade === "D") return "Poor";
   return "Very Poor";
-}
-
-function getLatencyColor(ms: number): string {
-  if (ms < 30) return "#22c55e";
-  if (ms < 60) return "#eab308";
-  return "#ef4444";
-}
-
-function getJitterColor(ms: number): string {
-  if (ms < 5) return "#22c55e";
-  if (ms < 10) return "#eab308";
-  return "#ef4444";
-}
-
-function getLossColor(pct: number): string {
-  if (pct === 0) return "#22c55e";
-  if (pct < 2) return "#eab308";
-  return "#ef4444";
 }
 
 function SpeedPanel({ state, setState }: Props) {
@@ -225,11 +195,9 @@ function SpeedPanel({ state, setState }: Props) {
       }
     : null;
 
-  const showLatencyRow = state.latencyResult !== null;
-
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 16px", gap: 16, overflowY: "auto" }}>
-      <h2 style={{ fontSize: 20, fontWeight: 700, color: "#e2e8f0", margin: 0 }}>
+    <div className="speed-panel">
+      <h2 style={{ fontSize: 20, fontWeight: 700, color: "var(--text-primary)", margin: 0 }}>
         Speed Test
       </h2>
 
@@ -241,89 +209,126 @@ function SpeedPanel({ state, setState }: Props) {
         stageName={state.currentStage}
       />
 
-      {state.result && (
+      {state.status === "error" && (
+        <div className="speed-grade-badge">
+          <div className="speed-grade-tile bad">&#9888;&#65039;</div>
+          <div>
+            <div className="speed-grade-label">Connection failed</div>
+            <div className="speed-grade-detail" style={{ color: "var(--danger)" }}>
+              Check your network and try again.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {state.status !== "error" && state.result && (
         simpleMode ? (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-            <span style={{ fontSize: 36, fontWeight: 800, color: getGradeColor(state.result.qualityGrade) }}>
+            <span style={{ fontSize: 36, fontWeight: 800, color: "var(--" + (state.result.qualityGrade === "A+" || state.result.qualityGrade === "A" ? "success" : state.result.qualityGrade === "B" ? "warning" : "danger") + ")" }}>
               {state.result.qualityGrade}
             </span>
-            <span style={{ fontSize: 16, color: "#e2e8f0", fontWeight: 600 }}>
+            <span style={{ fontSize: 16, color: "var(--text-primary)", fontWeight: 600 }}>
               {getGradeLabel(state.result.qualityGrade)}
             </span>
-            <span style={{ fontSize: 24, color: "#94a3b8" }}>
+            <span style={{ fontSize: 24, color: "var(--text-secondary)" }}>
               {state.result.headlineMbps.toFixed(1)} Mbps
             </span>
           </div>
         ) : (
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <span style={{ fontSize: 24, fontWeight: 800, color: getGradeColor(state.result.qualityGrade) }}>
+          <div className="speed-grade-badge">
+            <div className={`speed-grade-tile ${getGradeClass(state.result.qualityGrade)}`}>
               {state.result.qualityGrade}
-            </span>
-            <span style={{ fontSize: 14, color: "#94a3b8" }}>
-              <Tooltip text="Your network quality score from 0-100, based on download speed, latency, jitter, and packet loss.">
-                Network Quality
-              </Tooltip> ({state.result.qualityScore}/100)
-            </span>
+            </div>
+            <div>
+              <div className="speed-grade-label">Network Quality Score</div>
+              <div className="speed-grade-detail" style={{ color: "var(--success)" }}>
+                {getGradeLabel(state.result.qualityGrade)}
+              </div>
+            </div>
           </div>
         )
       )}
 
-      {showLatencyRow && state.latencyResult && !simpleMode && (
-        <div style={{ width: "100%", maxWidth: 360, display: "flex", justifyContent: "space-between", fontSize: 12, padding: "8px 12px", backgroundColor: "#1e293b", borderRadius: 8 }}>
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-            <span style={{ color: "#64748b", fontSize: 10 }}>
-              <Tooltip text="Average time for a packet to reach the server and back. Lower is better.">
-                Latency
-              </Tooltip>
-            </span>
-            <span style={{ color: state.latencyResult.successCount === 0 ? "#64748b" : getLatencyColor(state.latencyResult.avgMs), fontWeight: 600 }}>
-              {state.latencyResult.successCount === 0 ? "--" : `${state.latencyResult.avgMs.toFixed(1)} ms`}
-            </span>
+      {state.status === "idle" && (
+        <div className="speed-grade-badge">
+          <div className="speed-grade-tile empty">&mdash;</div>
+          <div>
+            <div className="speed-grade-label">Network Quality Score</div>
+            <div className="speed-grade-detail" style={{ color: "var(--text-tertiary)" }}>
+              Run a speed test to see your grade
+            </div>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-            <span style={{ color: "#64748b", fontSize: 10 }}>
-              <Tooltip text="Variation in latency between pings. Lower jitter means a more stable connection.">
-                Jitter
-              </Tooltip>
-            </span>
-            <span style={{ color: state.latencyResult.successCount < 2 ? "#64748b" : getJitterColor(state.latencyResult.jitterMs), fontWeight: 600 }}>
-              {state.latencyResult.successCount < 2 ? "--" : `${state.latencyResult.jitterMs.toFixed(1)} ms`}
-            </span>
+        </div>
+      )}
+
+      {state.status === "running" && state.testPhase === "latency" && (
+        <div className="speed-grade-badge">
+          <div className="speed-grade-tile empty">&mdash;</div>
+          <div>
+            <div className="speed-grade-label">Network Quality Score</div>
+            <div className="speed-grade-detail" style={{ color: "var(--text-tertiary)" }}>
+              Testing latency...
+            </div>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-            <span style={{ color: "#64748b", fontSize: 10 }}>
-              <Tooltip text="Percentage of ping packets that didn't reach the server. 0% is ideal.">
-                Packet Loss
-              </Tooltip>
-            </span>
-            <span style={{ color: getLossColor(state.latencyResult.packetLoss), fontWeight: 600 }}>
+        </div>
+      )}
+
+      {state.status === "running" && state.testPhase === "download" && (
+        <div className="speed-grade-badge">
+          <div className="speed-grade-tile empty">&mdash;</div>
+          <div>
+            <div className="speed-grade-label">Network Quality Score</div>
+            <div className="speed-grade-detail" style={{ color: "var(--text-tertiary)" }}>
+              Testing download...
+            </div>
+          </div>
+        </div>
+      )}
+
+      {state.latencyResult && (
+        <div className="speed-metric-tiles">
+          <div className="speed-metric-tile">
+            <div className="speed-metric-value" style={{ color: state.latencyResult.successCount === 0 ? "var(--text-tertiary)" : "var(--success)" }}>
+              {state.latencyResult.successCount === 0 ? "\u2014" : `${state.latencyResult.avgMs.toFixed(1)}ms`}
+            </div>
+            <div className="speed-metric-label">Latency</div>
+          </div>
+          <div className="speed-metric-tile">
+            <div className="speed-metric-value" style={{ color: "var(--accent)" }}>
+              {state.latencyResult.successCount < 2 ? "\u2014" : `${state.latencyResult.jitterMs.toFixed(1)}ms`}
+            </div>
+            <div className="speed-metric-label">Jitter</div>
+          </div>
+          <div className="speed-metric-tile">
+            <div className="speed-metric-value" style={{ color: state.latencyResult.packetLoss === 0 ? "var(--success)" : state.latencyResult.packetLoss < 2 ? "var(--warning)" : "var(--danger)" }}>
               {state.latencyResult.packetLoss.toFixed(1)}%
-            </span>
+            </div>
+            <div className="speed-metric-label">Loss</div>
+          </div>
+          <div className="speed-metric-tile">
+            <div className="speed-metric-value" style={{ color: "var(--text-primary)" }}>
+              {state.result ? `${state.result.headlineMbps.toFixed(1)}Mbps` : "\u2014"}
+            </div>
+            <div className="speed-metric-label">Download</div>
           </div>
         </div>
       )}
 
       {state.stageResults.length > 0 && !simpleMode && (
-        <div style={{ width: "100%", maxWidth: 360, display: "flex", flexDirection: "column", gap: 6 }}>
+        <div className="speed-stage-bars">
           {state.stageResults.map((sr, i) => {
             const barWidth = sr.error ? 0 : maxSpeed > 0 ? (sr.downloadMbps / maxSpeed) * 100 : 0;
             return (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
-                <span style={{ width: 60, color: sr.error ? "#ef4444" : "#94a3b8", flexShrink: 0 }}>
-                  {sr.name}
-                </span>
+              <div key={i} className="speed-stage-bar-row">
+                <span className="stage-name">{sr.name}</span>
                 {sr.error ? (
-                  <span style={{ color: "#ef4444", fontSize: 12 }}>
-                    Failed: {sr.error.length > 25 ? sr.error.slice(0, 25) + "..." : sr.error}
-                  </span>
+                  <span style={{ color: "var(--danger)", fontSize: 10 }}>Failed</span>
                 ) : (
                   <>
-                    <div style={{ flex: 1, height: 8, backgroundColor: "#1e293b", borderRadius: 4, overflow: "hidden" }}>
-                      <div style={{ width: `${barWidth}%`, height: "100%", backgroundColor: getBarColor(sr.downloadMbps), borderRadius: 4, transition: "width 0.5s ease" }} />
+                    <div className="speed-stage-bar-track">
+                      <div className="speed-stage-bar-fill" style={{ width: `${barWidth}%` }} />
                     </div>
-                    <span style={{ width: 90, textAlign: "right" as const, color: "#e2e8f0", fontWeight: 600, flexShrink: 0 }}>
-                      {sr.downloadMbps.toFixed(1)} Mbps
-                    </span>
+                    <span className="stage-value">{sr.downloadMbps.toFixed(1)} Mbps</span>
                   </>
                 )}
               </div>
@@ -333,22 +338,18 @@ function SpeedPanel({ state, setState }: Props) {
       )}
 
       {state.error && (
-        <p style={{ color: "#ef4444", fontSize: 13, margin: 0, textAlign: "center" }}>
+        <p style={{ color: "var(--danger)", fontSize: 13, margin: 0, textAlign: "center" }}>
           {state.error}
         </p>
       )}
 
       <button
-        style={{
-          ...btnBase,
-          backgroundColor: "#7c3aed",
-          color: "#fff",
-          cursor: "pointer",
-        }}
+        className="btn-accent"
+        style={{ width: 380, maxWidth: "100%" }}
         disabled={false}
         onClick={state.status === "running" ? cancelTest : runTest}
       >
-        {state.status === "running" ? "Cancel" : state.status === "done" ? "Test Again" : "Start Test"}
+        {state.status === "running" ? "Cancel" : state.status === "error" ? "Retry" : state.status === "done" ? "Test Again" : "Start Test"}
       </button>
 
       {exportData.length > 0 && <ExportButton data={exportData} filename="speed-test" />}
@@ -381,35 +382,36 @@ function HistorySection({ history, stats }: { history: SpeedHistoryEntry[]; stat
   }));
 
   return (
-    <div style={{ width: "100%", maxWidth: 360, marginTop: 8 }}>
+    <div className="speed-history-toggle">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <button
           onClick={() => setOpen(!open)}
-          style={{ background: "none", border: "none", color: "#94a3b8", fontSize: 13, cursor: "pointer", padding: "4px 0", textAlign: "left" as const, display: "flex", justifyContent: "space-between", flex: 1 }}
+          className="speed-history-clear"
+          style={{ display: "flex", justifyContent: "space-between", flex: 1, fontSize: 13 }}
         >
           <span>History</span>
-          <span>{open ? "▲" : "▼"}</span>
+          <span>{open ? "\u25B2" : "\u25BC"}</span>
         </button>
         <ExportButton data={historyExportData} filename="speed-history" label="Export History" />
       </div>
       {open && (
         <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 4 }}>
           {history.slice(0, 5).map((h, i) => (
-            <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#64748b" }}>
+            <div key={i} className="speed-history-row">
               <span>{formatTimestamp(h.timestamp)}</span>
-              <span style={{ color: "#94a3b8" }}>{h.qualityGrade} ({h.qualityScore}) {h.headlineMbps.toFixed(1)} Mbps</span>
+              <span style={{ color: "var(--text-secondary)" }}>{h.qualityGrade} ({h.qualityScore}) {h.headlineMbps.toFixed(1)} Mbps</span>
             </div>
           ))}
           {stats && (
-            <div style={{ borderTop: "1px solid #1e293b", paddingTop: 4, marginTop: 4, fontSize: 11, color: "#475569", display: "flex", justifyContent: "space-between" }}>
-              <span>Min: {stats.min}</span>
-              <span>Avg: {stats.avg.toFixed(0)}</span>
-              <span>Max: {stats.max}</span>
+            <div style={{ borderTop: "1px solid var(--bg-input)", paddingTop: 4, marginTop: 4, fontSize: 11, display: "flex", justifyContent: "space-between" }}>
+              <span style={{ color: "var(--text-tertiary)" }}>Min: {stats.min}</span>
+              <span style={{ color: "var(--text-tertiary)" }}>Avg: {stats.avg.toFixed(0)}</span>
+              <span style={{ color: "var(--text-tertiary)" }}>Max: {stats.max}</span>
             </div>
           )}
           <button
             onClick={clearHistory}
-            style={{ background: "none", border: "none", color: "#475569", fontSize: 11, cursor: "pointer", padding: "4px 0", textAlign: "left" as const, marginTop: 2 }}
+            className="speed-history-clear"
           >
             Clear History
           </button>

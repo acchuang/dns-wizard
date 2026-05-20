@@ -27,10 +27,10 @@ function getGaugeMax(mbps: number): number {
 }
 
 function getArcColor(mbps: number): string {
-  if (mbps >= 250) return "#06b6d4";
-  if (mbps >= 50) return "#22c55e";
-  if (mbps >= 10) return "#eab308";
-  return "#ef4444";
+  if (mbps >= 250) return "var(--accent)";
+  if (mbps >= 50) return "var(--success)";
+  if (mbps >= 10) return "var(--warning)";
+  return "var(--danger)";
 }
 
 function arcPath(value: number, max: number): string {
@@ -112,7 +112,7 @@ function SpeedGauge({ result, currentMbps, status, testPhase, stageName }: Props
   return (
     <div style={{ position: "relative", width: SIZE, height: SIZE }}>
       <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`}>
-        <path d={fullBgArc(gaugeMax)} fill="none" stroke="#1e293b" strokeWidth={STROKE} strokeLinecap="round" />
+        <path d={fullBgArc(gaugeMax)} fill="none" stroke="var(--bg-input)" strokeWidth={STROKE} strokeLinecap="round" />
         {showArc && (
           <path
             d={arcPath(displayMbps, gaugeMax)}
@@ -140,16 +140,16 @@ function SpeedGauge({ result, currentMbps, status, testPhase, stageName }: Props
         alignItems: "center",
       }}>
         {status === "running" && testPhase === "latency" && (
-          <span style={{ fontSize: 14, color: "#94a3b8" }}>Testing latency...</span>
+          <span style={{ fontSize: 14, color: "var(--text-secondary)" }}>Testing latency...</span>
         )}
         {status === "running" && testPhase === "download" && (
           <>
             <span style={{ fontSize: 28, fontWeight: 700, color: arcColor }}>
               {currentMbps.toFixed(1)}
             </span>
-            <span style={{ fontSize: 13, color: "#64748b" }}>Mbps</span>
+            <span style={{ fontSize: 13, color: "var(--text-tertiary)" }}>Mbps</span>
             {stageName && (
-              <span style={{ fontSize: 11, color: "#475569", marginTop: 2 }}>{stageName}</span>
+              <span style={{ fontSize: 11, color: "var(--text-tertiary)", marginTop: 2 }}>{stageName}</span>
             )}
           </>
         )}
@@ -158,17 +158,17 @@ function SpeedGauge({ result, currentMbps, status, testPhase, stageName }: Props
             <span style={{ fontSize: 32, fontWeight: 700, color: arcColor }}>
               {animatedMbps.toFixed(1)}
             </span>
-            <span style={{ fontSize: 13, color: "#64748b" }}>Mbps</span>
+            <span style={{ fontSize: 13, color: "var(--text-tertiary)" }}>Mbps</span>
           </>
         )}
         {status === "idle" && (
-          <span style={{ fontSize: 14, color: "#64748b" }}>Mbps</span>
+          <span style={{ fontSize: 14, color: "var(--text-tertiary)" }}>Mbps</span>
         )}
         {status === "error" && (
-          <span style={{ fontSize: 14, color: "#ef4444" }}>Error</span>
+          <span style={{ fontSize: 14, color: "var(--danger)" }}>Error</span>
         )}
         {status === "cancelled" && (
-          <span style={{ fontSize: 14, color: "#eab308" }}>Cancelled</span>
+          <span style={{ fontSize: 14, color: "var(--warning)" }}>Cancelled</span>
         )}
       </div>
     </div>
