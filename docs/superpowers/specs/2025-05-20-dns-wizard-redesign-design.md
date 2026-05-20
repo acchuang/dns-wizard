@@ -71,6 +71,7 @@ The sidebar includes a Simple Mode toggle (eye icon) that switches between detai
 | `success`         | `#34c759`                 | `#3fb950`                 | Positive status, good metrics  |
 | `warning`         | `#ff9500`                 | `#db6d28`                 | Caution state, moderate values |
 | `danger`          | `#ff3b30`                 | `#f85149`                 | Errors, poor metrics           |
+| `coffee`          | `#ff813f`                 | `#db6d28`                 | Buy Me a Coffee button        |
 
 ### Typography
 
