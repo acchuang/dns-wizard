@@ -1,3 +1,5 @@
+import { open } from "@tauri-apps/plugin-shell";
+
 function AboutPanel() {
   return (
     <div className="about-panel">
@@ -23,9 +25,12 @@ function AboutPanel() {
       </div>
 
       <div className="about-footer">
-        <a className="about-coffee-btn" href="https://buymeacoffee.com/acchuang" target="_blank" rel="noopener noreferrer">
+        <button
+          className="about-coffee-btn"
+          onClick={() => open("https://buymeacoffee.com/acchuang")}
+        >
           ☕ Support DNS Wizard
-        </a>
+        </button>
       </div>
 
       <div className="about-section">
