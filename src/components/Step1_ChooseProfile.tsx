@@ -42,56 +42,30 @@ interface Props {
   applied: boolean;
   appliedProfile: Profile | null;
   networkInfo: NetworkInfo | null;
+  selectedProfile?: Profile | null;
 }
 
-const wrapperStyle: React.CSSProperties = {
-  flex: "0 0 100%",
-  width: "100%",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: 24,
-};
-
-const gridStyle: React.CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
-  gap: 12,
-  width: "100%",
-  overflow: "hidden",
-  padding: 2,
-};
-
-function Step1_ChooseProfile({ onSelect, applied, appliedProfile, networkInfo }: Props) {
+function Step1_ChooseProfile({ onSelect, applied, appliedProfile, networkInfo, selectedProfile }: Props) {
   return (
-    <div style={wrapperStyle}>
-      <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>Choose a Profile</h1>
-      <p style={{ fontSize: 14, color: "#94a3b8", margin: 0, textAlign: "center" }}>
-        What do you want your internet to do?
-      </p>
+    <div className="dns-step-wrapper">
+      <h1 className="dns-step-title">Choose a Profile</h1>
+      <p className="dns-step-desc">What do you want your internet to do?</p>
       {applied && appliedProfile && (
-        <p style={{ fontSize: 12, color: "#10b981", margin: 0 }}>
-          DNS is active ({appliedProfile} profile applied)
-        </p>
+        <p className="dns-step-applied">DNS is active ({appliedProfile} profile applied)</p>
       )}
       {networkInfo && (
-        <div style={{ fontSize: 12, color: "#64748b", margin: 0, textAlign: "center" }}>
-          <span>Active: {networkInfo.service}</span>
-          {networkInfo.servers.length > 0 && (
-            <span> · DNS: {networkInfo.servers.join(", ")}</span>
-          )}
-          {networkInfo.servers.length === 0 && (
-            <span> · DNS: DHCP (automatic)</span>
-          )}
-        </div>
+        <p className="dns-step-network">
+          Active: {networkInfo.service}
+          {networkInfo.servers.length > 0 ? ` · DNS: ${networkInfo.servers.join(", ")}` : " · DNS: DHCP (automatic)"}
+        </p>
       )}
-      <div style={gridStyle}>
+      <div className="dns-profile-grid">
         {profiles.map((p) => (
           <ProfileCard
             key={p.id}
             profile={p}
             onSelect={() => onSelect(p.id)}
+            selected={selectedProfile === p.id}
           />
         ))}
       </div>

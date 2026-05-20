@@ -212,51 +212,35 @@ function DnsPanel({ onDnsApplied }: Props) {
   }, []);
 
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 24, overflow: "hidden" }}>
-      <div style={{ marginBottom: 16, padding: 16, backgroundColor: "#16213e", borderRadius: 10, display: "flex", flexDirection: "column", gap: 8 }}>
-        <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: "#e2e8f0" }}>
+    <div className="dns-panel">
+      <div className="dns-quick-fix">
+        <h3>
           <Tooltip text="Benchmarks all DNS providers and applies the fastest one automatically — no need to pick a profile.">
             Quick Fix
           </Tooltip>
         </h3>
-        {simpleMode ? (
-          <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>One click to optimize your DNS for speed.</p>
-        ) : (
-          <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>Benchmarks all providers and applies the fastest one.</p>
-        )}
-        <button
+        <p>{simpleMode ? "One click to optimize your DNS for speed." : "Benchmarks all providers and applies the fastest one."}</p>
+        <button className="btn-accent"
           onClick={handleQuickFix}
           disabled={quickFixRunning || quickFixApplying}
-          style={{
-            padding: "10px 24px",
-            borderRadius: 8,
-            border: "none",
-            fontSize: 14,
-            fontWeight: 600,
-            cursor: quickFixRunning || quickFixApplying ? "not-allowed" : "pointer",
-            backgroundColor: "#7c3aed",
-            color: "#fff",
-            opacity: quickFixRunning || quickFixApplying ? 0.6 : 1,
-          }}
-        >
+          style={{ opacity: quickFixRunning || quickFixApplying ? 0.6 : 1, cursor: quickFixRunning || quickFixApplying ? 'not-allowed' : 'pointer' }}>
           {quickFixRunning ? "Testing..." : "Fix My Internet"}
         </button>
-        {quickFixError && <p style={{ color: "#ef4444", fontSize: 13, margin: 0 }}>{quickFixError}</p>}
+        {quickFixError && <p style={{ color: "var(--danger)", fontSize: 13, margin: 0 }}>{quickFixError}</p>}
         {quickFix && !quickFixRunning && !quickFixError && (
           <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 4 }}>
-            <p style={{ fontSize: 14, color: "#10b981", margin: 0, fontWeight: 600 }}>
-              Fastest: {quickFix.providerName} ({quickFix.providerIp}) — {quickFix.latencyMs}ms
+            <p style={{ fontSize: 14, color: "var(--success)", margin: 0, fontWeight: 600 }}>
+              Fastest: {quickFix.providerName} ({quickFix.providerIp}) &mdash; {quickFix.latencyMs}ms
             </p>
             {!quickFixApplied && (
-              <button
+              <button className="btn-outline"
                 onClick={handleQuickFixApply}
                 disabled={quickFixApplying}
-                style={{ padding: "8px 16px", borderRadius: 6, border: "1px solid #334155", backgroundColor: "transparent", color: "#94a3b8", fontSize: 13, cursor: "pointer", width: "fit-content" }}
-              >
+                style={{ width: "fit-content", flex: "none" }}>
                 {quickFixApplying ? "Authorizing..." : `Apply ${quickFix.providerName}`}
               </button>
             )}
-            {quickFixApplied && <p style={{ fontSize: 13, color: "#10b981", margin: 0 }}>DNS applied successfully!</p>}
+            {quickFixApplied && <p style={{ fontSize: 13, color: "var(--success)", margin: 0 }}>DNS applied successfully!</p>}
           </div>
         )}
       </div>
@@ -268,6 +252,7 @@ function DnsPanel({ onDnsApplied }: Props) {
             applied={state.applied}
             appliedProfile={state.appliedProfile}
             networkInfo={networkInfo}
+            selectedProfile={state.selectedProfile}
           />
         )}
         {state.step === 2 && (

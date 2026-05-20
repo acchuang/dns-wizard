@@ -18,55 +18,6 @@ interface Props {
   onStartOver: () => void;
 }
 
-const wrapperStyle: React.CSSProperties = {
-  flex: "0 0 100%",
-  width: "100%",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  gap: 16,
-  overflowY: "auto",
-};
-
-const btnBase: React.CSSProperties = {
-  padding: "10px 24px",
-  borderRadius: 8,
-  border: "none",
-  fontSize: 14,
-  fontWeight: 600,
-  cursor: "pointer",
-  transition: "opacity 0.2s",
-};
-
-const authBtn: React.CSSProperties = {
-  ...btnBase,
-  backgroundColor: "#7c3aed",
-  color: "#fff",
-};
-
-const restoreBtn: React.CSSProperties = {
-  ...btnBase,
-  backgroundColor: "transparent",
-  color: "#94a3b8",
-  border: "1px solid #334155",
-};
-
-const flushBtn: React.CSSProperties = {
-  ...btnBase,
-  backgroundColor: "transparent",
-  color: "#64748b",
-  border: "1px solid #334155",
-  fontSize: 13,
-  padding: "8px 16px",
-};
-
-const startOverBtn: React.CSSProperties = {
-  ...btnBase,
-  backgroundColor: "transparent",
-  color: "#64748b",
-  fontSize: 13,
-};
-
 function Step3_Results({
   results,
   selectedIp,
@@ -89,6 +40,8 @@ function Step3_Results({
 
   const allUnreachable = results.length > 0 && reachable.length === 0;
 
+  const fastestIp = reachable.length > 0 ? reachable[0].ip : null;
+
   const secondaryFor = (ip: string) => {
     const others = reachable
       .filter((r) => r.ip !== ip)
@@ -104,14 +57,21 @@ function Step3_Results({
     }));
   }, [results]);
 
+  const rowClass = (ip: string) => {
+    const classes = ["dns-result-row"];
+    if (selectedIp === ip) classes.push("selected");
+    if (fastestIp === ip) classes.push("fastest");
+    return classes.join(" ");
+  };
+
   return (
-    <div style={wrapperStyle}>
-      <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>
+    <div className="dns-results-wrapper">
+      <h1 className="dns-step-title">
         {applied ? "DNS Active" : "Benchmark Results"}
       </h1>
 
       {allUnreachable && (
-        <p style={{ fontSize: 14, color: "#ef4444", margin: 0, textAlign: "center" }}>
+        <p style={{ fontSize: 14, color: "var(--danger)", margin: 0, textAlign: "center" }}>
           No DNS servers responded. Check your internet connection and try again.
         </p>
       )}
@@ -128,54 +88,48 @@ function Step3_Results({
                   justifyContent: "space-between",
                   alignItems: "center",
                   padding: "10px 16px",
-                  backgroundColor: selectedIp === r.ip ? "rgba(124, 58, 237, 0.15)" : "#16213e",
+                  backgroundColor: selectedIp === r.ip ? "var(--bg-selected)" : "var(--bg-card)",
                   borderRadius: 8,
                   cursor: "pointer",
                 }}
               >
-                <span style={{ fontSize: 14, color: "#e2e8f0" }}>{r.name}</span>
-                <span style={{ fontSize: 14, fontWeight: 600, color: r.latency! < 20 ? "#22c55e" : r.latency! < 50 ? "#eab308" : "#ef4444" }}>
+                <span style={{ fontSize: 14, color: "var(--text-primary)" }}>{r.name}</span>
+                <span style={{ fontSize: 14, fontWeight: 600, color: r.latency! < 20 ? "var(--success)" : r.latency! < 50 ? "var(--warning)" : "var(--danger)" }}>
                   {r.latency}ms
                 </span>
               </div>
             ))}
           </div>
         ) : (
-          <table style={{ width: "100%", maxWidth: 440, borderCollapse: "collapse" }}>
+          <table className="dns-results-table">
             <thead>
-              <tr style={{ borderBottom: "1px solid #334155" }}>
-                <th style={thStyle}>Provider</th>
-                <th style={thStyle}>
+              <tr>
+                <th>Provider</th>
+                <th>
                   <Tooltip text="How long it takes for the DNS server to respond. Lower is better.">
                     Latency
                   </Tooltip>
                 </th>
-                <th style={thStyle} />
+                <th />
               </tr>
             </thead>
             <tbody>
               {results.map((r) => (
                 <tr
                   key={r.ip}
-                  style={{
-                    borderBottom: "1px solid #1e293b",
-                    backgroundColor:
-                      selectedIp === r.ip ? "rgba(124, 58, 237, 0.15)" : "transparent",
-                    cursor: "pointer",
-                    transition: "background-color 0.15s",
-                  }}
+                  className={rowClass(r.ip)}
                   onClick={() => onSelect(r.ip, secondaryFor(r.ip))}
                 >
-                  <td style={tdStyle}>{r.name}</td>
-                  <td style={{ ...tdStyle, fontFamily: "monospace" }}>
+                  <td>{r.name}</td>
+                  <td style={{ fontFamily: "monospace" }}>
                     {r.latency === null
                       ? "--"
                       : r.latency >= UNREACHABLE_SENTINEL
-                      ? <span style={{ color: "#ef4444" }}>Unreachable</span>
+                      ? <span style={{ color: "var(--danger)" }}>Unreachable</span>
                       : `${r.latency}ms`}
                   </td>
-                  <td style={tdStyle}>
-                    {selectedIp === r.ip && <span style={{ color: "#7c3aed" }}>Selected</span>}
+                  <td>
+                    {selectedIp === r.ip && <span style={{ color: "var(--accent)" }}>Selected</span>}
                   </td>
                 </tr>
               ))}
@@ -187,52 +141,37 @@ function Step3_Results({
       <ExportButton data={exportData} filename="dns-benchmark" label="Export" />
 
       {error && (
-        <p style={{ fontSize: 13, color: "#ef4444", margin: 0, textAlign: "center" }}>
+        <p style={{ fontSize: 13, color: "var(--danger)", margin: 0, textAlign: "center" }}>
           {error}
         </p>
       )}
 
       {!applied && selectedIp && !isApplying && (
-        <button style={authBtn} onClick={onAuthorizeApply}>
+        <button className="btn-accent" onClick={onAuthorizeApply}>
           Apply DNS (requires admin)
         </button>
       )}
       {isApplying && (
-        <p style={{ fontSize: 13, color: "#94a3b8", margin: 0 }}>
+        <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0 }}>
           Waiting for authorization...
         </p>
       )}
 
       {applied && !isApplying && (
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
-          <button style={restoreBtn} onClick={onAuthorizeRestore}>
+        <div className="dns-result-buttons">
+          <button className="btn-outline" onClick={onAuthorizeRestore}>
             Restore Default DNS
           </button>
-          <button style={flushBtn} onClick={onFlushCache} disabled={isFlushing}>
+          <button className="btn-outline" onClick={onFlushCache} disabled={isFlushing}
+            style={{ opacity: isFlushing ? 0.5 : 1 }}>
             {isFlushing ? "Flushing..." : "Flush DNS Cache"}
           </button>
         </div>
       )}
 
-      <button style={startOverBtn} onClick={onStartOver}>
-        Start Over
-      </button>
+      <button className="dns-btn-text" onClick={onStartOver}>Start Over</button>
     </div>
   );
 }
-
-const thStyle: React.CSSProperties = {
-  padding: "8px 12px",
-  textAlign: "left",
-  fontSize: 12,
-  fontWeight: 600,
-  color: "#64748b",
-  textTransform: "uppercase",
-};
-
-const tdStyle: React.CSSProperties = {
-  padding: "10px 12px",
-  fontSize: 14,
-};
 
 export default Step3_Results;
