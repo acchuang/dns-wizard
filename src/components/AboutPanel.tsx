@@ -22,6 +22,12 @@ function AboutPanel() {
         </div>
       </div>
 
+      <div className="about-footer">
+        <a className="about-coffee-btn" href="https://buymeacoffee.com/acchuang" target="_blank" rel="noopener noreferrer">
+          ☕ Support DNS Wizard
+        </a>
+      </div>
+
       <div className="about-section">
         <h2>DNS Wizard</h2>
         <p>
@@ -88,12 +94,9 @@ function AboutPanel() {
         </p>
       </div>
 
-      <div className="about-footer">
-        <a className="about-coffee-btn" href="https://buymeacoffee.com/acchuang" target="_blank" rel="noopener noreferrer">
-          ☕ Support DNS Wizard
-        </a>
-        <p className="about-credit">Built with Tauri, React, and Rust. Network tools that respect your privacy.</p>
-      </div>
+      <p className="about-credit" style={{ borderTop: "1px solid var(--border)", paddingTop: 16, marginTop: 8 }}>
+        Built with Tauri, React, and Rust. Network tools that respect your privacy.
+      </p>
     </div>
   );
 }
