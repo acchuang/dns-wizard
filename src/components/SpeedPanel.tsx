@@ -345,7 +345,6 @@ function SpeedPanel({ state, setState }: Props) {
 
       <button
         className="btn-accent"
-        style={{ width: 380, maxWidth: "100%" }}
         disabled={false}
         onClick={state.status === "running" ? cancelTest : runTest}
       >
