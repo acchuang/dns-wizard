@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { Globe, Zap, Radio, SearchCheck, Heart, Info, Eye, EyeOff } from "lucide-react";
 import { ActiveTool, PublicIpInfo } from "../types";
 import { useSimpleMode } from "./SimpleModeContext";
+import { useTheme } from "./ThemeContext";
 
 interface Props {
   activeTool: ActiveTool;
@@ -17,38 +18,9 @@ const tools: { id: ActiveTool; icon: typeof Globe; label: string }[] = [
   { id: "health", icon: Heart, label: "Health" },
 ];
 
-const sidebarStyle: React.CSSProperties = {
-  width: 56,
-  minHeight: "100%",
-  backgroundColor: "#0f172a",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  paddingTop: 8,
-  gap: 4,
-  borderRight: "1px solid #1e293b",
-  boxSizing: "border-box",
-  overflow: "hidden",
-};
-
-const btnStyle = (active: boolean): React.CSSProperties => ({
-  width: 36,
-  height: 36,
-  borderRadius: 8,
-  border: "none",
-  outline: "none",
-  margin: "0 0 0 6px",
-  backgroundColor: active ? "#7c3aed" : "transparent",
-  color: active ? "#fff" : "#64748b",
-  cursor: "pointer",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  transition: "background-color 0.2s",
-});
-
 function Sidebar({ activeTool, onToolChange }: Props) {
   const { simpleMode, toggleSimpleMode } = useSimpleMode();
+  const { theme, setTheme } = useTheme();
   const [ipInfo, setIpInfo] = useState<PublicIpInfo | null>(null);
 
   useEffect(() => {
@@ -64,26 +36,12 @@ function Sidebar({ activeTool, onToolChange }: Props) {
   }, []);
 
   return (
-    <div style={sidebarStyle}>
+    <div className="sidebar">
+      <div className="sidebar-logo">D</div>
       {ipInfo && (
-        <div
-          style={{
-            width: 48,
-            padding: "6px 2px",
-            textAlign: "center" as const,
-            fontSize: 8,
-            color: "#475569",
-            lineHeight: 1.3,
-            marginBottom: 4,
-            borderBottom: "1px solid #1e293b",
-            paddingBottom: 6,
-            wordBreak: "break-all" as const,
-            overflowWrap: "break-word" as const,
-          }}
-          title={`IP: ${ipInfo.ip}\nISP: ${ipInfo.isp}\n${ipInfo.city}, ${ipInfo.country}`}
-        >
-          <div style={{ fontSize: 7, color: "#64748b", marginBottom: 2, letterSpacing: 0.5 }}>MY IP</div>
-          <div style={{ fontSize: 9, fontWeight: 600, color: "#94a3b8" }}>{ipInfo.ip}</div>
+        <div className="sidebar-ip" title={`IP: ${ipInfo.ip}\nISP: ${ipInfo.isp}\n${ipInfo.city}, ${ipInfo.country}`}>
+          <div className="sidebar-ip-label">MY IP</div>
+          <div className="sidebar-ip-value">{ipInfo.ip}</div>
         </div>
       )}
       {tools.map((tool) => {
@@ -91,7 +49,7 @@ function Sidebar({ activeTool, onToolChange }: Props) {
         return (
           <button
             key={tool.id}
-            style={btnStyle(activeTool === tool.id)}
+            className={`sidebar-btn ${activeTool === tool.id ? 'active' : ''}`}
             onClick={() => onToolChange(tool.id)}
             title={tool.label}
             aria-label={tool.label}
@@ -103,10 +61,10 @@ function Sidebar({ activeTool, onToolChange }: Props) {
       })}
       <div style={{ flex: 1 }} />
       <button
+        className="sidebar-btn"
         style={{
-          ...btnStyle(false),
-          backgroundColor: simpleMode ? "#7c3aed33" : "transparent",
-          color: simpleMode ? "#a78bfa" : "#475569",
+          background: simpleMode ? 'var(--accent-muted)' : 'transparent',
+          color: simpleMode ? 'var(--accent)' : 'var(--text-tertiary)',
         }}
         onClick={toggleSimpleMode}
         title={simpleMode ? "Show technical details" : "Hide technical details"}
@@ -114,8 +72,13 @@ function Sidebar({ activeTool, onToolChange }: Props) {
       >
         {simpleMode ? <EyeOff size={16} /> : <Eye size={16} />}
       </button>
+      <div className="sidebar-theme-toggle">
+        <button className={`sidebar-theme-btn ${theme === 'light' ? 'active' : ''}`} onClick={() => setTheme('light')} title="Light mode">☀️</button>
+        <button className={`sidebar-theme-btn ${theme === 'auto' ? 'active' : ''}`} onClick={() => setTheme('auto')} title="Auto mode">🔄</button>
+        <button className={`sidebar-theme-btn ${theme === 'dark' ? 'active' : ''}`} onClick={() => setTheme('dark')} title="Dark mode">🌙</button>
+      </div>
       <button
-        style={btnStyle(activeTool === "about")}
+        className={`sidebar-btn ${activeTool === 'about' ? 'active' : ''}`}
         onClick={() => onToolChange("about")}
         title="About"
         aria-label="About"
