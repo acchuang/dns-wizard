@@ -47,7 +47,7 @@ button:focus, a:focus, input:focus, select:focus {
   display: inline-flex;
   align-items: center;
   cursor: help;
-  border-bottom: 1px dotted #64748b;
+  border-bottom: 1px dotted var(--text-tertiary);
 }
 
 .tooltip-box {
@@ -56,9 +56,9 @@ button:focus, a:focus, input:focus, select:focus {
   bottom: calc(100% + 6px);
   left: 50%;
   transform: translateX(-50%);
-  background-color: #1e293b;
-  border: 1px solid #334155;
-  color: #e2e8f0;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
   font-size: 12px;
   font-weight: 400;
   padding: 8px 12px;
@@ -73,6 +73,60 @@ button:focus, a:focus, input:focus, select:focus {
 
 .tooltip-wrapper:hover .tooltip-box {
   display: block;
+}
+
+.result-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.result-table th {
+  padding: 8px 12px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+
+.result-table td {
+  padding: 8px 12px;
+  font-size: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.progress-dots {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.progress-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  color: var(--text-tertiary);
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+.progress-dot.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.progress-dot.done {
+  background: var(--success);
+  border-color: var(--success);
+  color: #fff;
 }
 
 .sidebar {
