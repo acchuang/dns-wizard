@@ -1,15 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { NetworkInfo, SpeedHistoryEntry } from "../types";
+import { NetworkInfo, SpeedHistoryEntry, LatencyResult } from "../types";
 import { useSimpleMode } from "./SimpleModeContext";
 
 interface HealthStatus {
   dns: "good" | "warn" | "bad" | "unknown";
   speed: "good" | "warn" | "bad" | "unknown";
   security: "good" | "warn" | "bad" | "unknown";
-  dnsLabel: string;
-  speedLabel: string;
-  securityLabel: string;
+  dnsDetail: string;
+  speedDetail: string;
+  securityDetail: string;
 }
 
 function getGradeClass(grade: string): "good" | "warn" | "bad" {
@@ -18,91 +18,240 @@ function getGradeClass(grade: string): "good" | "warn" | "bad" {
   return "bad";
 }
 
-function StatusLight({ status, label, fixLabel, onFix }: { status: "good" | "warn" | "bad" | "unknown"; label: string; fixLabel?: string; onFix?: () => void }) {
-  const colors = { good: "#22c55e", warn: "#eab308", bad: "#ef4444", unknown: "#64748b" };
+const DNS_LABELS: Record<string, string> = {
+  good: "Secure",
+  warn: "Check",
+  bad: "Unsafe",
+  unknown: "—",
+};
+
+const SPEED_LABELS: Record<string, string> = {
+  good: "Fast",
+  warn: "Check",
+  bad: "Slow",
+  unknown: "—",
+};
+
+const SECURITY_LABELS: Record<string, string> = {
+  good: "Protected",
+  warn: "Check",
+  bad: "Leaking",
+  unknown: "—",
+};
+
+interface CardProps {
+  icon: string;
+  iconKind: string;
+  label: string;
+  status: "good" | "warn" | "bad" | "unknown";
+  statusText: string;
+  detail: string;
+  fixLabel?: string;
+  onFix?: () => void;
+}
+
+function HealthCard({ icon, iconKind, label, status, statusText, detail, fixLabel, onFix }: CardProps) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "16px 20px", backgroundColor: "#16213e", borderRadius: 10, width: "100%" }}>
-      <div style={{ width: 16, height: 16, borderRadius: "50%", backgroundColor: colors[status], flexShrink: 0, boxShadow: `0 0 8px ${colors[status]}40` }} />
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 14, fontWeight: 600, color: "#e2e8f0" }}>{label}</div>
+    <div className="health-card">
+      <div className="health-card-header">
+        <div className={`health-card-icon ${iconKind}`}>{icon}</div>
+        <span className="health-card-label">{label}</span>
       </div>
+      <div className="health-status-line">
+        <div className={`health-status-dot ${status}`} />
+        <span className={`health-status-text ${status}`}>{statusText}</span>
+      </div>
+      {detail && <div className="health-card-detail">{detail}</div>}
       {fixLabel && onFix && status !== "good" && (
-        <button onClick={onFix} style={{ padding: "4px 12px", borderRadius: 6, border: "1px solid #7c3aed", background: "transparent", color: "#7c3aed", fontSize: 12, cursor: "pointer", whiteSpace: "nowrap" }}>
-          {fixLabel}
-        </button>
+        <button className="health-card-fix" onClick={onFix}>{fixLabel}</button>
       )}
     </div>
   );
 }
 
+function useSpeedMetrics(): { latest: SpeedHistoryEntry | null; latency: LatencyResult | null } {
+  return useMemo(() => {
+    try {
+      const raw = localStorage.getItem("dnswizard-speed-history");
+      if (!raw) return { latest: null, latency: null };
+      const history: SpeedHistoryEntry[] = JSON.parse(raw).filter(
+        (e: SpeedHistoryEntry) => e.qualityScore !== undefined
+      );
+      if (history.length === 0) return { latest: null, latency: null };
+      const latest = history[0];
+      return { latest, latency: latest.latency };
+    } catch {
+      return { latest: null, latency: null };
+    }
+  }, []);
+}
+
+function latColor(ms: number): string {
+  if (ms < 20) return "var(--success)";
+  if (ms < 50) return "var(--warning)";
+  return "var(--danger)";
+}
+
 function HealthPanel({ onNavigate }: { onNavigate: (tool: string) => void }) {
   const { simpleMode } = useSimpleMode();
   const [health, setHealth] = useState<HealthStatus>({
-    dns: "unknown", speed: "unknown", security: "unknown",
-    dnsLabel: "Checking...", speedLabel: "No data", securityLabel: "Not tested",
+    dns: "unknown",
+    speed: "unknown",
+    security: "unknown",
+    dnsDetail: "",
+    speedDetail: "",
+    securityDetail: "",
   });
 
   useEffect(() => {
     async function check() {
       let dnsStatus: HealthStatus["dns"] = "unknown";
-      let dnsLabel = "Unknown";
+      let dnsDetail = "";
       try {
         const info = await invoke<NetworkInfo>("get_current_dns");
         if (info.servers.length === 0) {
           dnsStatus = "bad";
-          dnsLabel = simpleMode ? "Using slow ISP DNS" : `No custom DNS — using ISP default on ${info.service}`;
+          dnsDetail = simpleMode
+            ? "Using slow ISP DNS"
+            : `No custom DNS — using ISP default on ${info.service}`;
         } else {
           const known = ["1.1.1.1", "8.8.8.8", "9.9.9.9", "94.140.14.14", "76.76.2.0", "208.67.222.222", "8.26.56.26", "194.242.2.2", "45.45.46.46"];
           const hasKnown = info.servers.some((s: string) => known.includes(s));
           dnsStatus = hasKnown ? "good" : "warn";
-          dnsLabel = hasKnown
-            ? (simpleMode ? "Fast DNS active" : `Custom DNS active on ${info.service}: ${info.servers.join(", ")}`)
-            : (simpleMode ? "Unknown DNS" : `Unknown DNS servers on ${info.service}: ${info.servers.join(", ")}`);
+          dnsDetail = hasKnown
+            ? simpleMode
+              ? "Fast DNS active"
+              : `Custom DNS active on ${info.service}: ${info.servers.join(", ")}`
+            : simpleMode
+              ? "Unknown DNS"
+              : `Unknown DNS servers on ${info.service}: ${info.servers.join(", ")}`;
         }
       } catch {
         dnsStatus = "unknown";
-        dnsLabel = "Could not detect";
+        dnsDetail = "Could not detect";
       }
 
       let speedStatus: HealthStatus["speed"] = "unknown";
-      let speedLabel = "No speed test run";
+      let speedDetail = "No speed test run";
       try {
         const raw = localStorage.getItem("dnswizard-speed-history");
         if (raw) {
-          const history: SpeedHistoryEntry[] = JSON.parse(raw).filter((e: SpeedHistoryEntry) => e.qualityScore !== undefined);
+          const history: SpeedHistoryEntry[] = JSON.parse(raw).filter(
+            (e: SpeedHistoryEntry) => e.qualityScore !== undefined
+          );
           if (history.length > 0) {
             const latest = history[0];
             const cls = getGradeClass(latest.qualityGrade);
             speedStatus = cls;
-            speedLabel = simpleMode
-              ? (cls === "good" ? "Connection is fast" : cls === "warn" ? "Connection is okay" : "Connection is slow")
+            speedDetail = simpleMode
+              ? cls === "good"
+                ? "Connection is fast"
+                : cls === "warn"
+                  ? "Connection is okay"
+                  : "Connection is slow"
               : `Last test: ${latest.qualityGrade} (${latest.qualityScore}/100) — ${latest.headlineMbps.toFixed(1)} Mbps`;
+            
           }
         }
       } catch {}
 
       let secStatus: HealthStatus["security"] = "unknown";
-      let secLabel = "Not tested";
-      // We don't store leak results persistently, so we can only say "not tested"
-      secLabel = simpleMode ? "Run a leak test to check" : "No leak test results yet — run a DNS leak test to verify security";
+      let secDetail = simpleMode
+        ? "Run a leak test to check"
+        : "No leak test results yet — run a DNS leak test to verify security";
 
-      setHealth({ dns: dnsStatus, speed: speedStatus, security: secStatus, dnsLabel, speedLabel, securityLabel: secLabel });
+      setHealth({
+        dns: dnsStatus,
+        speed: speedStatus,
+        security: secStatus,
+        dnsDetail,
+        speedDetail,
+        securityDetail: secDetail,
+      });
     }
     check();
   }, [simpleMode]);
 
+  const speedMetrics = useSpeedMetrics();
+
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 24, gap: 16, color: "#e2e8f0" }}>
-      <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>Network Health</h2>
-      {simpleMode && (
-        <p style={{ fontSize: 13, color: "#94a3b8", margin: 0 }}>
-          Quick overview of your internet status. Fix any red items below.
-        </p>
-      )}
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        <StatusLight status={health.dns} label={health.dnsLabel} fixLabel="Set DNS" onFix={() => onNavigate("dns")} />
-        <StatusLight status={health.speed} label={health.speedLabel} fixLabel="Test Speed" onFix={() => onNavigate("speed")} />
-        <StatusLight status={health.security} label={health.securityLabel} fixLabel="Test Leaks" onFix={() => onNavigate("leak")} />
+    <div className="health-panel">
+      <div className="health-header">
+        <h2 className="health-title">Network Health</h2>
+        <span className="health-subtitle">DNS Wizard</span>
+      </div>
+
+      <div className="health-cards">
+        <HealthCard
+          icon="🔒"
+          iconKind="dns"
+          label="DNS"
+          status={health.dns}
+          statusText={DNS_LABELS[health.dns]}
+          detail={health.dnsDetail}
+          fixLabel="Set DNS"
+          onFix={() => onNavigate("dns")}
+        />
+        <HealthCard
+          icon="⚡"
+          iconKind="speed"
+          label="Speed"
+          status={health.speed}
+          statusText={SPEED_LABELS[health.speed]}
+          detail={health.speedDetail}
+          fixLabel="Test Speed"
+          onFix={() => onNavigate("speed")}
+        />
+        <HealthCard
+          icon="🛡"
+          iconKind="security"
+          label="Security"
+          status={health.security}
+          statusText={SECURITY_LABELS[health.security]}
+          detail={health.securityDetail}
+          fixLabel="Test Leaks"
+          onFix={() => onNavigate("leak")}
+        />
+      </div>
+
+      <div className="health-actions">
+        <button className="btn-accent" onClick={() => onNavigate("dns")}>Quick Fix DNS</button>
+        <button className="btn-outline" onClick={() => onNavigate("speed")}>Run Speed Test</button>
+        <button className="btn-outline" onClick={() => onNavigate("leak")}>DNS Leak Test</button>
+      </div>
+
+      <div className="health-metric-tiles">
+        <div className="health-metric-tile">
+          <div
+            className="health-metric-value"
+            style={{
+              color: speedMetrics.latency
+                ? latColor(speedMetrics.latency.avgMs)
+                : "var(--text-primary)",
+            }}
+          >
+            {speedMetrics.latency ? `${speedMetrics.latency.avgMs.toFixed(0)} ms` : "—"}
+          </div>
+          <div className="health-metric-label">Latency</div>
+        </div>
+        <div className="health-metric-tile">
+          <div className="health-metric-value" style={{ color: speedMetrics.latest ? "var(--accent)" : "var(--text-primary)" }}>
+            {speedMetrics.latest ? `${speedMetrics.latest.headlineMbps.toFixed(1)} Mbps` : "—"}
+          </div>
+          <div className="health-metric-label">Download</div>
+        </div>
+        <div className="health-metric-tile">
+          <div className="health-metric-value">
+            {speedMetrics.latency ? `${speedMetrics.latency.jitterMs.toFixed(1)} ms` : "—"}
+          </div>
+          <div className="health-metric-label">Jitter</div>
+        </div>
+        <div className="health-metric-tile">
+          <div className="health-metric-value">
+            {speedMetrics.latency ? `${speedMetrics.latency.packetLoss.toFixed(1)}%` : "—"}
+          </div>
+          <div className="health-metric-label">Loss</div>
+        </div>
       </div>
     </div>
   );
