@@ -11,50 +11,11 @@ interface Props {
   setState: React.Dispatch<React.SetStateAction<PingState>>;
 }
 
-const inputStyle: React.CSSProperties = {
-  padding: "8px 12px",
-  borderRadius: 6,
-  border: "1px solid #334155",
-  backgroundColor: "#16213e",
-  color: "#e2e8f0",
-  fontSize: 14,
-  width: 200,
-};
-
-const btnStyle: React.CSSProperties = {
-  padding: "8px 16px",
-  borderRadius: 8,
-  border: "none",
-  fontSize: 14,
-  fontWeight: 600,
-  cursor: "pointer",
-  backgroundColor: "#7c3aed",
-  color: "#fff",
-};
-
-const cancelBtnStyle: React.CSSProperties = {
-  ...btnStyle,
-  backgroundColor: "transparent",
-  color: "#94a3b8",
-  border: "1px solid #334155",
-};
-
 const presets = [
   { label: "Cloudflare", host: "1.1.1.1" },
   { label: "Google", host: "8.8.8.8" },
   { label: "Quad9", host: "9.9.9.9" },
 ];
-
-const tabStyle = (active: boolean): React.CSSProperties => ({
-  padding: "6px 16px",
-  borderRadius: 6,
-  border: "none",
-  fontSize: 13,
-  fontWeight: 600,
-  cursor: "pointer",
-  backgroundColor: active ? "#7c3aed" : "transparent",
-  color: active ? "#fff" : "#64748b",
-});
 
 function PingPanel({ state, setState }: Props) {
   const cancelledRef = useRef(false);
@@ -123,33 +84,35 @@ function PingPanel({ state, setState }: Props) {
   const successCount = state.results.filter((r: PingResult | HopResult) => "seq" in r && r.success).length;
 
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 24, gap: 16, color: "#e2e8f0" }}>
-      <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>
+    <div className="ping-panel">
+      <h2>
         {state.mode === "ping" ? "Ping" : "Traceroute"}
       </h2>
-      <div style={{ display: "flex", gap: 8 }}>
-        <button style={tabStyle(state.mode === "ping")} onClick={() => setState((prev) => ({ ...prev, mode: "ping", results: [], error: null }))}>Ping</button>
-        <button style={tabStyle(state.mode === "traceroute")} onClick={() => setState((prev) => ({ ...prev, mode: "traceroute", results: [], error: null }))}>Traceroute</button>
+      <div className="ping-tabs">
+        <button className={`ping-tab ${state.mode === "ping" ? "active" : ""}`}
+          onClick={() => setState((prev) => ({ ...prev, mode: "ping", results: [], error: null }))}>Ping</button>
+        <button className={`ping-tab ${state.mode === "traceroute" ? "active" : ""}`}
+          onClick={() => setState((prev) => ({ ...prev, mode: "traceroute", results: [], error: null }))}>Traceroute</button>
       </div>
-      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+      <div className="ping-input-row">
         <input
-          style={inputStyle}
+          className="ping-input"
           value={state.host}
           onChange={(e) => setState((prev) => ({ ...prev, host: e.target.value }))}
           placeholder="cloudflare.com"
           disabled={state.isRunning}
         />
         {!state.isRunning ? (
-          <button style={btnStyle} onClick={runTest}>Run</button>
+          <button className="btn-accent" onClick={runTest}>Run</button>
         ) : (
-          <button style={cancelBtnStyle} onClick={cancel}>Cancel</button>
+          <button className="btn-outline" onClick={cancel}>Cancel</button>
         )}
       </div>
-      <div style={{ display: "flex", gap: 6 }}>
+      <div className="ping-presets">
         {presets.map((p) => (
           <button
             key={p.host}
-            style={{ padding: "4px 10px", borderRadius: 4, border: "1px solid #334155", background: "transparent", color: "#94a3b8", fontSize: 12, cursor: "pointer" }}
+            className={`ping-preset ${state.host === p.host && !state.isRunning ? 'active' : ''}`}
             onClick={() => setState((prev) => ({ ...prev, host: p.host, results: [], error: null }))}
             disabled={state.isRunning}
           >
@@ -159,34 +122,91 @@ function PingPanel({ state, setState }: Props) {
       </div>
 
       {simpleMode && state.mode === "ping" && state.results.length > 0 && !state.isRunning && (
-        <div style={{ padding: "12px 16px", backgroundColor: "#16213e", borderRadius: 8 }}>
+        <div style={{ padding: "12px 16px", backgroundColor: "var(--bg-card)", borderRadius: 8 }}>
           {successCount === 5 ? (
-            <span style={{ color: "#22c55e", fontWeight: 600 }}>
+            <span style={{ color: "var(--success)", fontWeight: 600 }}>
               ✓ All 5 pings succeeded — {state.host} is reachable
             </span>
           ) : (
-            <span style={{ color: "#ef4444", fontWeight: 600 }}>
+            <span style={{ color: "var(--danger)", fontWeight: 600 }}>
               ✗ {5 - successCount}/5 pings failed — {state.host} may be unreachable
             </span>
           )}
         </div>
       )}
 
-      {state.error && <p style={{ color: "#ef4444", fontSize: 13, margin: 0 }}>{state.error}</p>}
+      {state.error && <p style={{ color: "var(--danger)", fontSize: 13, margin: 0 }}>{state.error}</p>}
       {state.isRunning && state.mode === "traceroute" && rows.length === 0 && (
-        <p style={{ color: "#94a3b8", fontSize: 13, margin: 0 }}>
+        <p style={{ color: "var(--text-tertiary)", fontSize: 13, margin: 0 }}>
           <Tooltip text="Traceroute sends packets with increasing time-to-live to map each hop between you and the destination.">
             Tracing route
           </Tooltip>... this may take up to 40 seconds.
         </p>
       )}
       {!state.isRunning && !state.error && rows.length === 0 && (
-        <p style={{ color: "#64748b", fontSize: 13, margin: 0 }}>
-          {state.mode === "ping" ? "Click Run to ping a host" : "Click Run to trace the route to a host"}
+        <p className="ping-empty">
+          {state.mode === "ping" ? "Enter a host and run ping to see results." : "Click Run to trace the route to a host"}
         </p>
       )}
       {rows.length > 0 && !simpleMode && (
         <ResultTable columns={state.mode === "ping" ? pingColumns : traceColumns} rows={rows} />
+      )}
+
+      {state.results.length > 0 && !state.isRunning && state.mode === "ping" && (
+        <div className="ping-summary-tiles">
+          <div className="ping-summary-tile">
+            <div className="ping-summary-value" style={{ color: "var(--success)" }}>
+              {(() => {
+                const results = state.results as PingResult[];
+                const successes = results.filter(r => r.success && r.latencyMs !== null);
+                if (successes.length === 0) return "—";
+                const avgMs = successes.reduce((s, r) => s + (r.latencyMs ?? 0), 0) / successes.length;
+                return `${avgMs.toFixed(1)}ms`;
+              })()}
+            </div>
+            <div className="ping-summary-label">Avg</div>
+          </div>
+          <div className="ping-summary-tile">
+            <div className="ping-summary-value">
+              {(() => {
+                const results = state.results as PingResult[];
+                const successes = results.filter(r => r.success && r.latencyMs !== null);
+                if (successes.length === 0) return "—";
+                return `${Math.min(...successes.map(r => r.latencyMs ?? Infinity)).toFixed(1)}ms`;
+              })()}
+            </div>
+            <div className="ping-summary-label">Min</div>
+          </div>
+          <div className="ping-summary-tile">
+            <div className="ping-summary-value">
+              {(() => {
+                const results = state.results as PingResult[];
+                const successes = results.filter(r => r.success && r.latencyMs !== null);
+                if (successes.length === 0) return "—";
+                return `${Math.max(...successes.map(r => r.latencyMs ?? 0)).toFixed(1)}ms`;
+              })()}
+            </div>
+            <div className="ping-summary-label">Max</div>
+          </div>
+          <div className="ping-summary-tile">
+            <div className="ping-summary-value" style={{ color: (() => {
+              const results = state.results as PingResult[];
+              const lossPct = results.length > 0 ? (results.filter(r => !r.success).length / results.length) * 100 : 0;
+              return lossPct === 0 ? "var(--success)" : lossPct < 25 ? "var(--warning)" : "var(--danger)";
+            })() }}>
+              {(() => {
+                const results = state.results as PingResult[];
+                if (results.length === 0) return "—";
+                return `${((results.filter(r => !r.success).length / results.length) * 100).toFixed(1)}%`;
+              })()}
+            </div>
+            <div className="ping-summary-label">Loss</div>
+          </div>
+          <div className="ping-summary-tile">
+            <div className="ping-summary-value">{state.results.length}</div>
+            <div className="ping-summary-label">Pings</div>
+          </div>
+        </div>
       )}
 
       {exportData.length > 0 && <ExportButton data={exportData} filename={`dns-wizard-${state.mode}`} />}
