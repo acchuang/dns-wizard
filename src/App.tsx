@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { ActiveTool, SpeedTestState, PingState, LeakTestState } from "./types";
+import { ThemeProvider } from "./components/ThemeContext";
 import { SimpleModeProvider } from "./components/SimpleModeContext";
 import OnboardingModal, { hasCompletedOnboarding } from "./components/OnboardingModal";
 import Sidebar from "./components/Sidebar";
@@ -47,7 +48,7 @@ function AppInner() {
   };
 
   return (
-    <div style={{ display: "flex", width: "100vw", height: "100vh", backgroundColor: "#1a1a2e" }}>
+    <div style={{ display: "flex", width: "100vw", height: "100vh", backgroundColor: "var(--bg-app)" }}>
       {showOnboarding && <OnboardingModal onComplete={() => setShowOnboarding(false)} />}
       <Sidebar activeTool={activeTool} onToolChange={setActiveTool} />
       <div className="app-content">
@@ -64,9 +65,11 @@ function AppInner() {
 
 function App() {
   return (
-    <SimpleModeProvider>
-      <AppInner />
-    </SimpleModeProvider>
+    <ThemeProvider>
+      <SimpleModeProvider>
+        <AppInner />
+      </SimpleModeProvider>
+    </ThemeProvider>
   );
 }
 
