@@ -1,24 +1,12 @@
 import { invoke } from "@tauri-apps/api/core";
 import { LeakTestState, LeakResult } from "../types";
 import { useSimpleMode } from "./SimpleModeContext";
-import Tooltip from "./Tooltip";
 
 interface Props {
   state: LeakTestState;
   setState: React.Dispatch<React.SetStateAction<LeakTestState>>;
   configuredDns: string[];
 }
-
-const btnStyle: React.CSSProperties = {
-  padding: "10px 24px",
-  borderRadius: 8,
-  border: "none",
-  fontSize: 14,
-  fontWeight: 600,
-  cursor: "pointer",
-  backgroundColor: "#7c3aed",
-  color: "#fff",
-};
 
 function LeakPanel({ state, setState, configuredDns }: Props) {
   const { simpleMode } = useSimpleMode();
@@ -37,10 +25,6 @@ function LeakPanel({ state, setState, configuredDns }: Props) {
 
   const { result } = state;
 
-  const statusColor = result?.isLeaking === true ? "#ef4444"
-    : result?.isLeaking === false ? "#10b981"
-    : "#eab308";
-
   const simpleLabel = result?.isLeaking === true ? "DNS leak detected"
     : result?.isLeaking === false ? "No leaks detected"
     : result?.isLeaking === null ? "No baseline set"
@@ -55,57 +39,106 @@ function LeakPanel({ state, setState, configuredDns }: Props) {
     : "";
 
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 24, gap: 16, color: "#e2e8f0" }}>
-      <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>
-        <Tooltip text="A DNS leak means your DNS queries are going through servers you didn't choose, potentially exposing your browsing to your ISP or third parties.">
-          DNS Leak Test
-        </Tooltip>
-      </h2>
+    <div className="leak-panel">
+      <h2>DNS Leak Test</h2>
 
       {configuredDns.length === 0 && state.status !== "running" && (
-        <p style={{ fontSize: 13, color: "#eab308", margin: 0 }}>Apply a DNS profile first to detect leaks.</p>
+        <p style={{ fontSize: 13, color: "var(--warning)", margin: 0 }}>
+          Apply a DNS profile first to detect leaks.
+        </p>
       )}
 
       <button
-        style={{ ...btnStyle, opacity: state.status === "running" || configuredDns.length === 0 ? 0.5 : 1, cursor: state.status === "running" || configuredDns.length === 0 ? "not-allowed" : "pointer" }}
+        className="btn-accent"
+        style={{ opacity: state.status === "running" || configuredDns.length === 0 ? 0.5 : 1, cursor: state.status === "running" || configuredDns.length === 0 ? "not-allowed" : "pointer" }}
         disabled={state.status === "running" || configuredDns.length === 0}
-        onClick={runTest}
-      >
-        {state.status === "running" ? "Testing..." : "Start Leak Test"}
+        onClick={runTest}>
+        {state.status === "running" ? "Testing..." : "Run Leak Test"}
       </button>
 
-      {state.error && <p style={{ color: "#ef4444", fontSize: 13, margin: 0 }}>{state.error}</p>}
+      {state.error && (
+        <p style={{ color: "var(--danger)", fontSize: 13, margin: 0 }}>{state.error}</p>
+      )}
 
       {result && (
-        <>
-          <p style={{ fontSize: 16, fontWeight: 600, color: statusColor, margin: 0 }}>
-            {simpleMode ? simpleLabel : detailedLabel}
-          </p>
-
-          {!simpleMode && (
-            <div style={{ display: "flex", gap: 24 }}>
-              <div style={{ flex: 1 }}>
-                <h3 style={{ fontSize: 14, color: "#94a3b8", margin: 0 }}>Your DNS Servers</h3>
-                {result.configuredServers.length === 0 ? (
-                  <p style={{ fontSize: 13, color: "#64748b" }}>None configured (using DHCP)</p>
-                ) : (
-                  <ul style={{ margin: 0, paddingLeft: 16 }}>
-                    {result.configuredServers.map((s) => <li key={s} style={{ fontSize: 13 }}>{s}</li>)}
-                  </ul>
-                )}
-              </div>
-              <div style={{ flex: 1 }}>
-                <h3 style={{ fontSize: 14, color: "#94a3b8", margin: 0 }}>Detected Servers</h3>
-                {result.detectedServers.length === 0 ? (
-                  <p style={{ fontSize: 13, color: "#64748b" }}>None detected</p>
-                ) : (
-                  <ul style={{ margin: 0, paddingLeft: 16 }}>
-                    {result.detectedServers.map((s) => <li key={s} style={{ fontSize: 13 }}>{s}</li>)}
-                  </ul>
-                )}
-              </div>
+        <div className={`leak-banner ${result.isLeaking === true ? 'danger' : result.isLeaking === false ? 'success' : 'warning'}`}>
+          <div className={`leak-banner-icon ${result.isLeaking === true ? 'danger' : result.isLeaking === false ? 'success' : 'warning'}`}>
+            {result.isLeaking === true ? '⚠️' : result.isLeaking === false ? '✅' : '—'}
+          </div>
+          <div>
+            <div className={`leak-banner-title ${result.isLeaking === true ? 'danger' : 'success'}`}>
+              {simpleMode ? simpleLabel : detailedLabel}
             </div>
-          )}
+            <div className="leak-banner-desc">
+              {result.isLeaking === true ? "Your DNS queries may be exposed to unintended servers." : result.isLeaking === false ? "All queries are routed through your configured DNS server." : "Apply a DNS profile and run the test to establish a baseline."}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {result && !simpleMode && (
+        <div className="leak-content">
+          <div className="leak-server-list">
+            <p className="leak-server-header">DETECTED SERVERS</p>
+            {result.detectedServers.map((ip) => {
+              const isConfigured = result.configuredServers.includes(ip);
+              return (
+                <div key={ip} className={`leak-server-card ${isConfigured ? '' : 'leaked'}`}>
+                  <div className={`leak-server-icon ${isConfigured ? 'configured' : 'leaked'}`}>
+                    {isConfigured ? 'CF' : '??'}
+                  </div>
+                  <div className="leak-server-info">
+                    <div className="leak-server-ip">{ip}</div>
+                    <div className="leak-server-provider">
+                      {isConfigured ? 'Configured' : 'Unknown Provider'}
+                    </div>
+                  </div>
+                  <span className={`leak-server-badge ${isConfigured ? 'configured' : 'leaked'}`}>
+                    {isConfigured ? '✓ Configured' : '⚠ Leaked'}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          <div className="leak-side-panel">
+            <div className="leak-stat-tile">
+              <div className="leak-stat-value">{result.detectedServers.length}</div>
+              <div className="leak-stat-label">Servers</div>
+            </div>
+            <div className="leak-stat-tile">
+              <div className="leak-stat-value" style={{ color: (result.detectedServers.filter(s => !result.configuredServers.includes(s)).length > 0 ? "var(--danger)" : "var(--success)") }}>
+                {result.detectedServers.filter(s => !result.configuredServers.includes(s)).length}
+              </div>
+              <div className="leak-stat-label">Leaks</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {result && simpleMode && (
+        <>
+          <div style={{ display: "flex", gap: 24 }}>
+            <div style={{ flex: 1 }}>
+              <h3 style={{ fontSize: 14, color: "var(--text-secondary)", margin: "0 0 4px 0" }}>Your DNS Servers</h3>
+              {result.configuredServers.length === 0 ? (
+                <p style={{ fontSize: 13, color: "var(--text-tertiary)" }}>None configured (using DHCP)</p>
+              ) : (
+                <ul style={{ margin: 0, paddingLeft: 16 }}>
+                  {result.configuredServers.map((s) => <li key={s} style={{ fontSize: 13, color: "var(--text-primary)" }}>{s}</li>)}
+                </ul>
+              )}
+            </div>
+            <div style={{ flex: 1 }}>
+              <h3 style={{ fontSize: 14, color: "var(--text-secondary)", margin: "0 0 4px 0" }}>Detected Servers</h3>
+              {result.detectedServers.length === 0 ? (
+                <p style={{ fontSize: 13, color: "var(--text-tertiary)" }}>None detected</p>
+              ) : (
+                <ul style={{ margin: 0, paddingLeft: 16 }}>
+                  {result.detectedServers.map((s) => <li key={s} style={{ fontSize: 13, color: "var(--text-primary)" }}>{s}</li>)}
+                </ul>
+              )}
+            </div>
+          </div>
         </>
       )}
     </div>
