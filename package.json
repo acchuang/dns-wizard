@@ -1,7 +1,7 @@
 {
   "name": "dns-wizard",
   "version": "1.2.0",
-  "description": "DNS Wizard — 6-tool network utility suite for macOS: DNS optimizer, Speed Test, Ping/Traceroute, DNS Leak Test, Network Health, and more. Built with Tauri + React + Rust.",
+  "description": "DNS Wizard — 6-tool network utility suite for macOS with a widget dashboard, dual light/dark themes, DNS optimizer with Quick Fix, Speed Test, Ping/Traceroute, DNS Leak Test, and Network Health. Built with Tauri + React + Rust.",
   "type": "module",
   "scripts": {
     "dev": "vite",
