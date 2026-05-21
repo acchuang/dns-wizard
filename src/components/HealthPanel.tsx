@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { NetworkInfo, SpeedHistoryEntry, LatencyResult } from "../types";
 import { useSimpleMode } from "./SimpleModeContext";
@@ -70,20 +70,30 @@ function HealthCard({ icon, iconKind, label, status, statusText, detail, fixLabe
 }
 
 function useSpeedMetrics(): { latest: SpeedHistoryEntry | null; latency: LatencyResult | null } {
-  return useMemo(() => {
-    try {
-      const raw = localStorage.getItem("dnswizard-speed-history");
-      if (!raw) return { latest: null, latency: null };
-      const history: SpeedHistoryEntry[] = JSON.parse(raw).filter(
-        (e: SpeedHistoryEntry) => e.qualityScore !== undefined
-      );
-      if (history.length === 0) return { latest: null, latency: null };
-      const latest = history[0];
-      return { latest, latency: latest.latency };
-    } catch {
-      return { latest: null, latency: null };
+  const [metrics, setMetrics] = useState<{ latest: SpeedHistoryEntry | null; latency: LatencyResult | null }>({ latest: null, latency: null });
+
+  useEffect(() => {
+    function compute() {
+      try {
+        const raw = localStorage.getItem("dnswizard-speed-history");
+        if (!raw) return { latest: null, latency: null };
+        const history: SpeedHistoryEntry[] = JSON.parse(raw).filter(
+          (e: SpeedHistoryEntry) => e.qualityScore !== undefined
+        );
+        if (history.length === 0) return { latest: null, latency: null };
+        const latest = history[0];
+        return { latest, latency: latest.latency };
+      } catch {
+        return { latest: null, latency: null };
+      }
     }
+    setMetrics(compute());
+    const handler = () => setMetrics(compute());
+    window.addEventListener("storage", handler);
+    return () => window.removeEventListener("storage", handler);
   }, []);
+
+  return metrics;
 }
 
 function latColor(ms: number): string {
@@ -94,6 +104,7 @@ function latColor(ms: number): string {
 
 function HealthPanel({ onNavigate }: { onNavigate: (tool: string) => void }) {
   const { simpleMode } = useSimpleMode();
+  const [loading, setLoading] = useState(true);
   const [health, setHealth] = useState<HealthStatus>({
     dns: "unknown",
     speed: "unknown",
@@ -169,10 +180,24 @@ function HealthPanel({ onNavigate }: { onNavigate: (tool: string) => void }) {
         securityDetail: secDetail,
       });
     }
-    check();
+    check().finally(() => setLoading(false));
   }, [simpleMode]);
 
   const speedMetrics = useSpeedMetrics();
+
+  if (loading) {
+    return (
+      <div className="health-panel">
+        <div className="health-header">
+          <h2 className="health-title">Network Health</h2>
+          <span className="health-subtitle">DNS Wizard</span>
+        </div>
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flex: 1, color: "var(--text-tertiary)", fontSize: 13 }}>
+          Checking network...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="health-panel">

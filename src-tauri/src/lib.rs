@@ -163,17 +163,7 @@ async fn execute_admin_restore(
 }
 
 fn shell_escape(s: &str) -> String {
-    let mut escaped = String::new();
-    for c in s.chars() {
-        match c {
-            '\\' | '"' | '$' | '`' => {
-                escaped.push('\\');
-                escaped.push(c);
-            }
-            _ => escaped.push(c),
-        }
-    }
-    escaped
+    format!("'{}'", s.replace('\'', "'\\''"))
 }
 
 #[tauri::command]
@@ -302,6 +292,16 @@ async fn get_public_ip() -> Result<PublicIpInfo, String> {
 
 #[tauri::command]
 async fn save_file(path: String, content: String) -> Result<(), String> {
+    if path.is_empty() {
+        return Err("Path cannot be empty".to_string());
+    }
+    let canonical_parent = std::path::Path::new(&path)
+        .parent()
+        .ok_or_else(|| "Invalid path: no parent directory".to_string())?;
+    if !canonical_parent.exists() {
+        std::fs::create_dir_all(canonical_parent)
+            .map_err(|e| format!("Failed to create directory: {}", e))?;
+    }
     std::fs::write(&path, content)
         .map_err(|e| format!("Failed to write file: {}", e))
 }

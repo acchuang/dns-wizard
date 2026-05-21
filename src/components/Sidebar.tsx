@@ -24,13 +24,16 @@ function Sidebar({ activeTool, onToolChange }: Props) {
   const [ipInfo, setIpInfo] = useState<PublicIpInfo | null>(null);
 
   useEffect(() => {
-    invoke<PublicIpInfo>("get_public_ip")
-      .then(setIpInfo)
-      .catch(() => {});
-    const interval = setInterval(() => {
+    const fetchIp = () => {
       invoke<PublicIpInfo>("get_public_ip")
         .then(setIpInfo)
         .catch(() => {});
+    };
+    fetchIp();
+    const interval = setInterval(() => {
+      if (!document.hidden) {
+        fetchIp();
+      }
     }, 60000);
     return () => clearInterval(interval);
   }, []);

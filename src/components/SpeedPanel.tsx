@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen, UnlistenFn } from "@tauri-apps/api/event";
 import {
@@ -64,6 +64,12 @@ function getGradeLabel(grade: string): string {
 
 function SpeedPanel({ state, setState }: Props) {
   const { simpleMode } = useSimpleMode();
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
 
   const runTest = async () => {
     setState({
@@ -77,8 +83,16 @@ function SpeedPanel({ state, setState }: Props) {
     let unlistenSpeedProgress: UnlistenFn | null = null;
     let unlistenStageDone: UnlistenFn | null = null;
 
+    const cleanup = () => {
+      unlistenLatencyProgress?.();
+      unlistenLatencyDone?.();
+      unlistenSpeedProgress?.();
+      unlistenStageDone?.();
+    };
+
     try {
       unlistenLatencyProgress = await listen<LatencyProgressEvent>("latency-progress", () => {
+        if (!mountedRef.current) return;
         setState((prev) => ({
           ...prev,
           pingProgress: prev.pingProgress + 1,
@@ -86,6 +100,7 @@ function SpeedPanel({ state, setState }: Props) {
       });
 
       unlistenLatencyDone = await listen<LatencyResult>("latency-done", (e) => {
+        if (!mountedRef.current) return;
         setState((prev) => ({
           ...prev,
           latencyResult: e.payload,
@@ -95,6 +110,7 @@ function SpeedPanel({ state, setState }: Props) {
       });
 
       unlistenSpeedProgress = await listen<SpeedProgressEvent>("speed-progress", (e) => {
+        if (!mountedRef.current) return;
         setState((prev) => ({
           ...prev,
           currentMbps: e.payload.currentMbps,
@@ -103,6 +119,7 @@ function SpeedPanel({ state, setState }: Props) {
       });
 
       unlistenStageDone = await listen<StageResult>("speed-stage-done", (e) => {
+        if (!mountedRef.current) return;
         setState((prev) => ({
           ...prev,
           stageResults: [...prev.stageResults, e.payload],
@@ -110,6 +127,11 @@ function SpeedPanel({ state, setState }: Props) {
       });
 
       const testResult = await invoke<SpeedTestResult>("run_speed_test");
+
+      if (!mountedRef.current) {
+        cleanup();
+        return;
+      }
 
       if (!testResult.cancelled) {
         saveHistory({
@@ -120,6 +142,7 @@ function SpeedPanel({ state, setState }: Props) {
           qualityScore: testResult.qualityScore,
           qualityGrade: testResult.qualityGrade,
         });
+        window.dispatchEvent(new StorageEvent("storage", { key: "dnswizard-speed-history" }));
       }
 
       if (testResult.cancelled && testResult.stages.some((s: StageResult) => !s.error)) {
@@ -142,6 +165,10 @@ function SpeedPanel({ state, setState }: Props) {
         }));
       }
     } catch (e) {
+      if (!mountedRef.current) {
+        cleanup();
+        return;
+      }
       if (String(e).includes("cancelled")) {
         setState((prev) => ({
           ...prev,
@@ -159,15 +186,12 @@ function SpeedPanel({ state, setState }: Props) {
         }));
       }
     } finally {
-      unlistenLatencyProgress?.();
-      unlistenLatencyDone?.();
-      unlistenSpeedProgress?.();
-      unlistenStageDone?.();
+      cleanup();
     }
   };
 
-  const cancelTest = () => {
-    invoke("cancel_speed_test");
+  const cancelTest = async () => {
+    await invoke("cancel_speed_test");
   };
 
   const history = loadHistory();

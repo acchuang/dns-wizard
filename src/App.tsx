@@ -10,6 +10,7 @@ import PingPanel from "./components/PingPanel";
 import LeakPanel from "./components/LeakPanel";
 import HealthPanel from "./components/HealthPanel";
 import AboutPanel from "./components/AboutPanel";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 const initialSpeed: SpeedTestState = { status: "idle", result: null, error: null, currentMbps: 0, currentStage: null, stageResults: [], latencyResult: null, testPhase: "idle", pingProgress: 0 };
 const initialPing: PingState = { host: "cloudflare.com", mode: "ping", isRunning: false, results: [], error: null };
@@ -51,14 +52,16 @@ function AppInner() {
     <div style={{ display: "flex", width: "100vw", height: "100vh", backgroundColor: "var(--bg-app)" }}>
       {showOnboarding && <OnboardingModal onComplete={() => setShowOnboarding(false)} />}
       <Sidebar activeTool={activeTool} onToolChange={setActiveTool} />
-      <div className="app-content">
-        {activeTool === "dns" && <DnsPanel onDnsApplied={handleDnsApplied} />}
-        {activeTool === "speed" && <SpeedPanel state={speedState} setState={setSpeedState} />}
-        {activeTool === "ping" && <PingPanel state={pingState} setState={setPingState} />}
-        {activeTool === "leak" && <LeakPanel state={leakState} setState={setLeakState} configuredDns={appliedDns} />}
-        {activeTool === "health" && <HealthPanel onNavigate={(t) => setActiveTool(t as ActiveTool)} />}
-        {activeTool === "about" && <AboutPanel />}
-      </div>
+      <ErrorBoundary>
+        <div className="app-content">
+          {activeTool === "dns" && <DnsPanel onDnsApplied={handleDnsApplied} />}
+          {activeTool === "speed" && <SpeedPanel state={speedState} setState={setSpeedState} />}
+          {activeTool === "ping" && <PingPanel state={pingState} setState={setPingState} />}
+          {activeTool === "leak" && <LeakPanel state={leakState} setState={setLeakState} configuredDns={appliedDns} />}
+          {activeTool === "health" && <HealthPanel onNavigate={(t) => setActiveTool(t as ActiveTool)} />}
+          {activeTool === "about" && <AboutPanel />}
+        </div>
+      </ErrorBoundary>
     </div>
   );
 }

@@ -13,7 +13,7 @@ const steps = [
   {
     title: "Find Your Fastest DNS",
     description: "Pick a profile, benchmark DNS servers, and apply the best one for your connection.",
-    icon: "🪄",
+    icon: "🌐",
   },
   {
     title: "Measure Your Speed",

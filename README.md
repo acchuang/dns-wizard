@@ -12,7 +12,7 @@ DNS Wizard is a high-performance, noob-friendly system utility that analyzes you
   - 👨‍👩‍👧 **Family**: Automatic filtering of adult content and malicious sites.
   - 🚫 **Ad-Free**: Integrates DNS-level ad-blocking to clean up your web experience.
   - ⚖️ **Balanced**: A stable, high-speed default.
-- **🛠️ One-Click Application**: Native integration with macOS (`networksetup`) and Windows (`netsh`) to apply settings instantly.
+- **🛠️ One-Click Application**: Native integration with macOS (`networksetup`) to apply settings instantly with admin authorization.
 - **🔄 Safety Net**: A built-in "Restore" function to instantly put your network back to automatic (DHCP) settings.
 - **🎨 Modern Wizard UX**: A sleek, 3-step guided experience designed for non-technical users.
 
@@ -44,7 +44,9 @@ npm run tauri build
 \`\`\`
 
 ## ⚠️ Important Usage Notes
-Modifying network settings requires elevated permissions. To use the **Apply** and **Restore** features, the application must be run as an **Administrator** (Windows) or with **Sudo/Root** (macOS).
+Modifying network settings requires elevated permissions. To use the **Apply** and **Restore** features, the application must be run with **sudo/root** privileges on **macOS**.
+
+> **Note**: DNS Wizard is currently macOS-only. Windows support is not yet available.
 
 ## 📜 License
 MIT License - Feel free to use and contribute!
