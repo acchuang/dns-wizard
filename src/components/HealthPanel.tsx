@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { NetworkInfo, SpeedHistoryEntry, LatencyResult } from "../types";
 import { useSimpleMode } from "./SimpleModeContext";
@@ -99,6 +99,8 @@ function latColor(ms: number): string {
 
 function HealthPanel({ onNavigate }: { onNavigate: (tool: string) => void }) {
   const { simpleMode } = useSimpleMode();
+  const simpleModeRef = useRef(simpleMode);
+  simpleModeRef.current = simpleMode;
   const [loading, setLoading] = useState(true);
   const [health, setHealth] = useState<HealthStatus>({
     dns: "unknown",
@@ -117,7 +119,7 @@ function HealthPanel({ onNavigate }: { onNavigate: (tool: string) => void }) {
         const info = await invoke<NetworkInfo>("get_current_dns");
         if (info.servers.length === 0) {
           dnsStatus = "bad";
-          dnsDetail = simpleMode
+          dnsDetail = simpleModeRef.current
             ? "Using slow ISP DNS"
             : `No custom DNS — using ISP default on ${info.service}`;
         } else {
@@ -125,10 +127,10 @@ function HealthPanel({ onNavigate }: { onNavigate: (tool: string) => void }) {
           const hasKnown = info.servers.some((s: string) => known.includes(s));
           dnsStatus = hasKnown ? "good" : "warn";
           dnsDetail = hasKnown
-            ? simpleMode
+            ? simpleModeRef.current
               ? "Fast DNS active"
               : `Custom DNS active on ${info.service}: ${info.servers.join(", ")}`
-            : simpleMode
+            : simpleModeRef.current
               ? "Unknown DNS"
               : `Unknown DNS servers on ${info.service}: ${info.servers.join(", ")}`;
         }
@@ -149,7 +151,7 @@ function HealthPanel({ onNavigate }: { onNavigate: (tool: string) => void }) {
             const latest = history[0];
             const cls = getHealthGradeClass(latest.qualityGrade);
             speedStatus = cls;
-            speedDetail = simpleMode
+            speedDetail = simpleModeRef.current
               ? cls === "good"
                 ? "Connection is fast"
                 : cls === "warn"
@@ -162,7 +164,7 @@ function HealthPanel({ onNavigate }: { onNavigate: (tool: string) => void }) {
       } catch {}
 
       let secStatus: HealthStatus["security"] = "unknown";
-      let secDetail = simpleMode
+      let secDetail = simpleModeRef.current
         ? "Run a leak test to check"
         : "No leak test results yet — run a DNS leak test to verify security";
 
@@ -176,7 +178,7 @@ function HealthPanel({ onNavigate }: { onNavigate: (tool: string) => void }) {
       });
     }
     check().finally(() => setLoading(false));
-  }, [simpleMode]);
+  }, []);
 
   const speedMetrics = useSpeedMetrics();
 
