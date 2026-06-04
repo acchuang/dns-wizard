@@ -74,6 +74,9 @@ pub fn cancel_traceroute() {
 }
 
 pub fn run_traceroute_sync(host: String, max_hops: u32) -> Result<Vec<HopResult>, String> {
+    use std::process::{Command, Stdio};
+    use std::io::{BufRead, BufReader};
+
     TRACE_CANCEL.store(false, Ordering::SeqCst);
 
     let traceroute_path = if std::path::Path::new("/usr/sbin/traceroute").exists() {
@@ -82,23 +85,28 @@ pub fn run_traceroute_sync(host: String, max_hops: u32) -> Result<Vec<HopResult>
         "traceroute"
     };
 
-    let output = Command::new(traceroute_path)
+    let mut child = Command::new(traceroute_path)
         .args(["-m", &max_hops.to_string(), "-w", "2", &host])
-        .output()
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
         .map_err(|e| format!("Failed to run traceroute: {}", e))?;
 
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(format!("traceroute failed: {}", stderr.trim()));
-    }
-
-    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stdout = child.stdout.take().ok_or_else(|| "Failed to capture stdout".to_string())?;
+    let reader = BufReader::new(stdout);
     let mut results = Vec::new();
 
-    for line in stdout.lines().skip(1) {
+    for line in reader.lines() {
         if TRACE_CANCEL.load(Ordering::SeqCst) {
+            let _ = child.kill();
+            let _ = child.wait();
             break;
         }
+
+        let line = match line {
+            Ok(l) => l,
+            Err(_) => break,
+        };
 
         let trimmed = line.trim();
         if trimmed.is_empty() {
@@ -115,7 +123,10 @@ pub fn run_traceroute_sync(host: String, max_hops: u32) -> Result<Vec<HopResult>
             Err(_) => continue,
         };
 
-        // Check for timeout line like "5  * * *"
+        if parts.len() < 2 {
+            continue;
+        }
+
         if parts[1] == "*" {
             results.push(HopResult {
                 hop: hop_num,
@@ -126,16 +137,13 @@ pub fn run_traceroute_sync(host: String, max_hops: u32) -> Result<Vec<HopResult>
             continue;
         }
 
-        // Extract hostname — prefer IP in parentheses if present
         let host_name = if parts.len() > 2 && parts[2].starts_with('(') {
-            // Format: "1  hostname (IP)  ..."
             let ip = parts[2].trim_start_matches('(').trim_end_matches(')');
             ip.to_string()
         } else {
             parts[1].to_string()
         };
 
-        // Find latency: look for a number followed by "ms" as separate tokens
         let mut latency: Option<f64> = None;
         for i in 1..parts.len().saturating_sub(1) {
             if parts[i + 1] == "ms" {
@@ -152,6 +160,13 @@ pub fn run_traceroute_sync(host: String, max_hops: u32) -> Result<Vec<HopResult>
             latency_ms: latency,
             success: latency.is_some(),
         });
+    }
+
+    if TRACE_CANCEL.load(Ordering::SeqCst) {
+        let _ = child.kill();
+        let _ = child.wait();
+    } else {
+        let _ = child.wait();
     }
 
     Ok(results)
