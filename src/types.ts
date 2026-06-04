@@ -47,7 +47,7 @@ export interface ProfileDef {
 }
 
 // --- Navigation ---
-export type ActiveTool = "dns" | "speed" | "ping" | "leak" | "health" | "about";
+export type ActiveTool = "dns" | "speed" | "ping" | "leak" | "health" | "ports" | "wifi" | "info" | "about";
 
 // --- Speed Test ---
 export interface StageResult {
@@ -160,3 +160,68 @@ export interface WizardState {
 }
 
 export const UNREACHABLE_SENTINEL = 99999;
+
+// --- Port Scanner ---
+export interface PortResult {
+  port: number;
+  status: "open" | "closed" | "filtered";
+  service: string;
+  latencyMs: number | null;
+}
+
+export interface PortScanState {
+  host: string;
+  portRange: string;
+  isRunning: boolean;
+  results: PortResult[];
+  progress: number;
+  total: number;
+  error: string | null;
+}
+
+export interface PortProgressEvent {
+  port: number;
+  status: string;
+  progress: number;
+}
+
+// --- Wi-Fi Scanner ---
+export interface WifiNetwork {
+  ssid: string;
+  bssid: string;
+  rssi: number;
+  security: string;
+  channel: number;
+  band: string;
+  isCurrent: boolean;
+}
+
+export interface WifiScanState {
+  isRunning: boolean;
+  networks: WifiNetwork[];
+  error: string | null;
+}
+
+// --- Network Info ---
+export interface NetworkInfoResult {
+  publicIp: string;
+  isp: string;
+  city: string;
+  country: string;
+  interfaceName: string;
+  connectionType: string;
+  macAddress: string;
+  localIp: string;
+  gateway: string;
+  dnsServers: string[];
+  dhcpMode: string;
+}
+
+// --- Toast ---
+export type ToastType = "success" | "error" | "info";
+
+export interface Toast {
+  id: number;
+  type: ToastType;
+  message: string;
+}

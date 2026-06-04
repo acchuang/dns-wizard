@@ -7,6 +7,9 @@ mod dns_leak;
 mod latency_test;
 mod validate;
 mod ip_norm;
+mod port_scan;
+mod wifi_scan;
+mod network_info;
 
 use dns_bench::{benchmark_dns, DnsProvider};
 use ping::{PingResult, HopResult};
@@ -320,6 +323,9 @@ async fn save_file(path: String, content: String) -> Result<(), String> {
 
 use speed_test::reset_speed_test;
 use latency_test::reset_latency_test;
+use port_scan::{run_port_scan, cancel_port_scan};
+use wifi_scan::{run_wifi_scan, cancel_wifi_scan};
+use network_info::run_network_info;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -345,6 +351,11 @@ pub fn run() {
             flush_dns_cache,
             get_public_ip,
             save_file,
+            run_port_scan,
+            cancel_port_scan,
+            run_wifi_scan,
+            cancel_wifi_scan,
+            run_network_info,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

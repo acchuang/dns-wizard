@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { PingState, PingResult, HopResult } from "../types";
 import { useSimpleMode } from "./SimpleModeContext";
+import EmptyState from "./EmptyState";
 import ResultTable from "./ResultTable";
 import ExportButton from "./ExportButton";
 import Tooltip from "./Tooltip";
@@ -144,9 +145,11 @@ function PingPanel({ state, setState }: Props) {
         </p>
       )}
       {!state.isRunning && !state.error && rows.length === 0 && (
-        <p className="ping-empty">
-          {state.mode === "ping" ? "Enter a host and run ping to see results." : "Click Run to trace the route to a host"}
-        </p>
+        <EmptyState
+          icon="📡"
+          title={state.mode === "ping" ? "Ping Test" : "Traceroute"}
+          description={state.mode === "ping" ? "Enter a host and run ping to see results." : "Click Run to trace the route to a host."}
+        />
       )}
       {rows.length > 0 && !simpleMode && (
         <ResultTable columns={state.mode === "ping" ? pingColumns : traceColumns} rows={rows} />

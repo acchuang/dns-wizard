@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { ActiveTool, SpeedTestState, PingState, LeakTestState } from "./types";
 import { ThemeProvider } from "./components/ThemeContext";
 import { SimpleModeProvider } from "./components/SimpleModeContext";
+import { ToastProvider } from "./components/ToastProvider";
 import OnboardingModal, { hasCompletedOnboarding } from "./components/OnboardingModal";
 import Sidebar from "./components/Sidebar";
 import DnsPanel from "./components/DnsPanel";
@@ -9,6 +10,9 @@ import SpeedPanel from "./components/SpeedPanel";
 import PingPanel from "./components/PingPanel";
 import LeakPanel from "./components/LeakPanel";
 import HealthPanel from "./components/HealthPanel";
+import PortScanPanel from "./components/PortScanPanel";
+import WifiPanel from "./components/WifiPanel";
+import NetworkInfoPanel from "./components/NetworkInfoPanel";
 import AboutPanel from "./components/AboutPanel";
 import ErrorBoundary from "./components/ErrorBoundary";
 
@@ -16,7 +20,7 @@ const initialSpeed: SpeedTestState = { status: "idle", result: null, error: null
 const initialPing: PingState = { host: "cloudflare.com", mode: "ping", isRunning: false, results: [], error: null };
 const initialLeak: LeakTestState = { status: "idle", result: null, error: null };
 
-const toolKeys: ActiveTool[] = ["dns", "speed", "ping", "leak", "health", "about"];
+const toolKeys: ActiveTool[] = ["dns", "speed", "ping", "leak", "health", "ports", "wifi", "info", "about"];
 
 function AppInner() {
   const [showOnboarding, setShowOnboarding] = useState(!hasCompletedOnboarding());
@@ -25,6 +29,18 @@ function AppInner() {
   const [pingState, setPingState] = useState<PingState>(initialPing);
   const [leakState, setLeakState] = useState<LeakTestState>(initialLeak);
   const [appliedDns, setAppliedDns] = useState<string[]>([]);
+  const [transitioning, setTransitioning] = useState(false);
+  const transitionRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleToolChange = useCallback((tool: ActiveTool) => {
+    if (tool === activeTool) return;
+    setTransitioning(true);
+    if (transitionRef.current) clearTimeout(transitionRef.current);
+    transitionRef.current = setTimeout(() => {
+      setActiveTool(tool);
+      setTransitioning(false);
+    }, 150);
+  }, [activeTool]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -32,7 +48,7 @@ function AppInner() {
         const idx = e.key.charCodeAt(0) - "1".charCodeAt(0);
         if (idx >= 0 && idx < toolKeys.length) {
           e.preventDefault();
-          setActiveTool(toolKeys[idx]);
+          handleToolChange(toolKeys[idx]);
         }
       }
     };
@@ -51,14 +67,17 @@ function AppInner() {
   return (
     <div style={{ display: "flex", width: "100vw", height: "100vh", backgroundColor: "var(--bg-app)" }}>
       {showOnboarding && <OnboardingModal onComplete={() => setShowOnboarding(false)} />}
-      <Sidebar activeTool={activeTool} onToolChange={setActiveTool} />
+      <Sidebar activeTool={activeTool} onToolChange={handleToolChange} />
       <ErrorBoundary>
-        <div className="app-content">
+        <div className={`app-content${transitioning ? " app-content-transitioning" : ""}`}>
           {activeTool === "dns" && <DnsPanel onDnsApplied={handleDnsApplied} />}
           {activeTool === "speed" && <SpeedPanel state={speedState} setState={setSpeedState} />}
           {activeTool === "ping" && <PingPanel state={pingState} setState={setPingState} />}
           {activeTool === "leak" && <LeakPanel state={leakState} setState={setLeakState} configuredDns={appliedDns} />}
-          {activeTool === "health" && <HealthPanel onNavigate={(t) => setActiveTool(t as ActiveTool)} />}
+          {activeTool === "health" && <HealthPanel onNavigate={(t) => handleToolChange(t as ActiveTool)} />}
+          {activeTool === "ports" && <PortScanPanel />}
+          {activeTool === "wifi" && <WifiPanel />}
+          {activeTool === "info" && <NetworkInfoPanel />}
           {activeTool === "about" && <AboutPanel />}
         </div>
       </ErrorBoundary>
@@ -69,9 +88,11 @@ function AppInner() {
 function App() {
   return (
     <ThemeProvider>
-      <SimpleModeProvider>
-        <AppInner />
-      </SimpleModeProvider>
+      <ToastProvider>
+        <SimpleModeProvider>
+          <AppInner />
+        </SimpleModeProvider>
+      </ToastProvider>
     </ThemeProvider>
   );
 }

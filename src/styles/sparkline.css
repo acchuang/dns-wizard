@@ -1,0 +1,32 @@
+.sparkline-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sparkline-bar-group {
+  cursor: pointer;
+}
+
+.sparkline-bar {
+  transition: opacity 0.2s;
+}
+
+.sparkline-bar-group:hover .sparkline-bar {
+  opacity: 0.8;
+}
+
+.sparkline-bar-good { fill: var(--success); }
+.sparkline-bar-warn { fill: var(--warning); }
+.sparkline-bar-bad { fill: var(--danger); }
+
+.sparkline-tooltip {
+  font-size: 10px;
+  padding: 4px 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-primary);
+  pointer-events: none;
+  white-space: nowrap;
+}

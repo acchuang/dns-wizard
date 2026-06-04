@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { WizardState, Profile, DnsProvider, ConfigResult, NetworkInfo, QuickFixResult } from "../types";
 import { useSimpleMode } from "./SimpleModeContext";
+import { useToast } from "./ToastProvider";
 import ProgressDots from "./ProgressDots";
 import Step1_ChooseProfile from "./Step1_ChooseProfile";
 import Step2_Benchmark from "./Step2_Benchmark";
@@ -36,6 +37,7 @@ function DnsPanel({ onDnsApplied }: Props) {
   const [quickFixError, setQuickFixError] = useState<string | null>(null);
   const benchmarkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { simpleMode } = useSimpleMode();
+  const { addToast } = useToast();
 
   const refreshNetworkInfo = useCallback(() => {
     invoke<NetworkInfo>("get_current_dns")
@@ -58,6 +60,7 @@ function DnsPanel({ onDnsApplied }: Props) {
     try {
       await invoke<ConfigResult>("flush_dns_cache");
       refreshNetworkInfo();
+      addToast("success", "DNS cache flushed");
     } catch {} finally {
       setIsFlushing(false);
     }
@@ -142,6 +145,7 @@ function DnsPanel({ onDnsApplied }: Props) {
       });
       if (result.success) {
         setQuickFixApplied(true);
+        addToast("success", "DNS applied successfully");
         onDnsApplied?.(quickFix.providerIp, null);
         refreshNetworkInfo();
       } else {
@@ -176,6 +180,7 @@ function DnsPanel({ onDnsApplied }: Props) {
           appliedProfile: prev.selectedProfile,
           isApplying: false,
         }));
+        addToast("success", `DNS applied to ${state.selectedIp}`);
         onDnsApplied?.(state.selectedIp, state.selectedSecondaryIp);
         refreshNetworkInfo();
       } else {
@@ -193,6 +198,7 @@ function DnsPanel({ onDnsApplied }: Props) {
       const result = await invoke<ConfigResult>("execute_admin_restore");
       if (result.success) {
         setState((prev) => ({ ...prev, applied: false, isApplying: false }));
+        addToast("success", "DNS restored to automatic");
         onDnsApplied?.(null, null);
         refreshNetworkInfo();
       } else {
@@ -233,7 +239,7 @@ function DnsPanel({ onDnsApplied }: Props) {
               Fastest: {quickFix.providerName} ({quickFix.providerIp}) &mdash; {quickFix.latencyMs}ms
             </p>
             {!quickFixApplied && (
-              <button className="btn-outline"
+              <button className={`btn-outline${quickFix ? " pulse-once" : ""}`}
                 onClick={handleQuickFixApply}
                 disabled={quickFixApplying}
                 style={{ width: "fit-content", flex: "none" }}>

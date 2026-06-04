@@ -6,6 +6,7 @@ import {
   SpeedTestResult, LatencyResult, LatencyProgressEvent,
 } from "../types";
 import { useSimpleMode } from "./SimpleModeContext";
+import { useToast } from "./ToastProvider";
 import { getGradeClass, getGradeLabel } from "../utils/grades";
 import SpeedGauge from "./SpeedGauge";
 import ExportButton from "./ExportButton";
@@ -46,6 +47,7 @@ function formatTimestamp(iso: string): string {
 
 function SpeedPanel({ state, setState }: Props) {
   const { simpleMode } = useSimpleMode();
+  const { addToast } = useToast();
   const mountedRef = useRef(true);
   const [, setHistoryKey] = useState(0);
 
@@ -125,6 +127,7 @@ function SpeedPanel({ state, setState }: Props) {
           qualityScore: testResult.qualityScore,
           qualityGrade: testResult.qualityGrade,
         });
+        addToast("info", "Speed test result saved");
         window.dispatchEvent(new StorageEvent("storage", { key: "dnswizard-speed-history" }));
       }
 

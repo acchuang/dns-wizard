@@ -28,6 +28,12 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), input:focus:not(:
   flex-direction: column;
   overflow: hidden;
   padding-left: 12px;
+  transition: opacity 0.15s ease;
+}
+
+.app-content-transitioning {
+  opacity: 0;
+}
 }
 
 @keyframes spin {
@@ -1273,4 +1279,35 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), input:focus:not(:
   font-size: 11px;
   cursor: pointer;
   padding: 0;
+}
+
+@keyframes stagger-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-once {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.dns-result-row {
+  animation: stagger-in 0.2s ease both;
+}
+
+.dns-result-row:nth-child(1) { animation-delay: 0s; }
+.dns-result-row:nth-child(2) { animation-delay: 0.05s; }
+.dns-result-row:nth-child(3) { animation-delay: 0.1s; }
+.dns-result-row:nth-child(4) { animation-delay: 0.15s; }
+.dns-result-row:nth-child(5) { animation-delay: 0.2s; }
+
+.pulse-once {
+  animation: pulse-once 0.3s ease;
 }

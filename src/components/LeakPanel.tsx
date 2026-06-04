@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { LeakTestState, LeakResult } from "../types";
 import { useSimpleMode } from "./SimpleModeContext";
 import { normalizedIncludes } from "../utils/ip";
+import EmptyState from "./EmptyState";
 
 interface Props {
   state: LeakTestState;
@@ -42,6 +43,10 @@ function LeakPanel({ state, setState, configuredDns }: Props) {
   return (
     <div className="leak-panel">
       <h2>DNS Leak Test</h2>
+
+      {state.status === "idle" && !result && configuredDns.length > 0 && (
+        <EmptyState icon="🔒" title="DNS Leak Test" description="Test whether your DNS queries are going through your configured servers" />
+      )}
 
       {configuredDns.length === 0 && state.status !== "running" && (
         <p style={{ fontSize: 13, color: "var(--warning)", margin: 0 }}>

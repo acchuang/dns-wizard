@@ -6,7 +6,7 @@ function AboutPanel() {
       <div className="about-header">
         <div className="about-logo">D</div>
         <h1 className="about-title">DNS Wizard</h1>
-        <p className="about-version">6-tool network utility suite for macOS · v1.2.2</p>
+        <p className="about-version">6-tool network utility suite for macOS · v1.3.0</p>
       </div>
 
       <div className="about-stats">
