@@ -1,6 +1,7 @@
 use hickory_resolver::TokioAsyncResolver;
 use hickory_resolver::config::{ResolverConfig, ResolverOpts};
 use serde::{Serialize, Deserialize};
+use crate::ip_norm::normalized_set;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -45,11 +46,10 @@ pub async fn run_dns_leak_test(configured_servers: Vec<String>) -> Result<DnsLea
     detected.dedup();
 
     let is_leaking = if configured_servers.is_empty() {
-        None // Can't determine without a baseline
+        None
     } else {
-        let configured_set: std::collections::HashSet<String> = configured_servers.iter().cloned().collect();
-        let detected_set: std::collections::HashSet<String> = detected.iter().cloned().collect();
-
+        let configured_set = normalized_set(&configured_servers);
+        let detected_set = normalized_set(&detected);
         Some(detected_set.iter().any(|d| !configured_set.contains(d)))
     };
 

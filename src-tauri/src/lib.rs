@@ -6,6 +6,7 @@ mod sys_config;
 mod dns_leak;
 mod latency_test;
 mod validate;
+mod ip_norm;
 
 use dns_bench::{benchmark_dns, DnsProvider};
 use ping::{PingResult, HopResult};

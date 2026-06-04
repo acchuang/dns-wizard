@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { LeakTestState, LeakResult } from "../types";
 import { useSimpleMode } from "./SimpleModeContext";
+import { normalizedIncludes } from "../utils/ip";
 
 interface Props {
   state: LeakTestState;
@@ -81,7 +82,7 @@ function LeakPanel({ state, setState, configuredDns }: Props) {
           <div className="leak-server-list">
             <p className="leak-server-header">DETECTED SERVERS</p>
             {result.detectedServers.map((ip) => {
-              const isConfigured = result.configuredServers.includes(ip);
+              const isConfigured = normalizedIncludes(result.configuredServers, ip);
               return (
                 <div key={ip} className={`leak-server-card ${isConfigured ? '' : 'leaked'}`}>
                   <div className={`leak-server-icon ${isConfigured ? 'configured' : 'leaked'}`}>
@@ -106,7 +107,7 @@ function LeakPanel({ state, setState, configuredDns }: Props) {
               <div className="leak-stat-label">Servers</div>
             </div>
             <div className="leak-stat-tile">
-              <div className="leak-stat-value" style={{ color: (result.detectedServers.filter(s => !result.configuredServers.includes(s)).length > 0 ? "var(--danger)" : "var(--success)") }}>
+              <div className="leak-stat-value"                 style={{ color: (result.detectedServers.filter(s => !normalizedIncludes(result.configuredServers, s)).length > 0 ? "var(--danger)" : "var(--success)") }}>
                 {result.detectedServers.filter(s => !result.configuredServers.includes(s)).length}
               </div>
               <div className="leak-stat-label">Leaks</div>
