@@ -664,6 +664,9 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), input:focus:not(:
   align-items: center;
   gap: 8px;
   transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
+  font-family: inherit;
+  line-height: inherit;
+  text-align: center;
 }
 
 .dns-profile-card:hover {

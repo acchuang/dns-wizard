@@ -21,14 +21,17 @@ interface Props {
 function ProfileCard({ profile, onSelect, selected = false }: Props) {
   const Icon = iconMap[profile.icon];
   return (
-    <div
+    <button
+      type="button"
       className={`dns-profile-card ${selected ? 'selected' : ''}`}
       onClick={onSelect}
+      aria-pressed={selected}
+      aria-label={`${profile.label}: ${profile.description}`}
     >
       <Icon size={28} className="dns-profile-icon" />
       <span className="dns-profile-name">{profile.label}</span>
       <span className="dns-profile-desc">{profile.description}</span>
-    </div>
+    </button>
   );
 }
 
