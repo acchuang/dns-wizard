@@ -223,6 +223,10 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), input:focus:not(:
   display: block;
 }
 
+.tooltip-wrapper:focus-within .tooltip-box {
+  display: block;
+}
+
 .result-table {
   width: 100%;
   border-collapse: collapse;

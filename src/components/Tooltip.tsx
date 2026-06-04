@@ -5,9 +5,14 @@ interface Props {
 
 function Tooltip({ text, children }: Props) {
   return (
-    <span className="tooltip-wrapper" style={{ position: "relative", display: "inline-flex", alignItems: "center" }}>
+    <span
+      className="tooltip-wrapper"
+      tabIndex={0}
+      role="button"
+      aria-describedby="tooltip-text"
+    >
       {children}
-      <span className="tooltip-box">{text}</span>
+      <span className="tooltip-box" role="tooltip" id="tooltip-text">{text}</span>
     </span>
   );
 }
