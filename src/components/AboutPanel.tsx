@@ -6,16 +6,16 @@ function AboutPanel() {
       <div className="about-header">
         <div className="about-logo">D</div>
         <h1 className="about-title">DNS Wizard</h1>
-        <p className="about-version">6-tool network utility suite for macOS · v1.3.0</p>
+        <p className="about-version">Network utility suite for macOS · v1.3.0</p>
       </div>
 
       <div className="about-stats">
         <div className="about-stat">
-          <div className="about-stat-value">6</div>
+          <div className="about-stat-value">7</div>
           <div className="about-stat-label">Tools</div>
         </div>
         <div className="about-stat">
-          <div className="about-stat-value">14</div>
+          <div className="about-stat-value">16</div>
           <div className="about-stat-label">Commands</div>
         </div>
         <div className="about-stat">
@@ -76,18 +76,35 @@ function AboutPanel() {
       </div>
 
       <div className="about-section">
-        <h2>Network Health</h2>
+        <h2>Network Dashboard</h2>
         <p>
-          At-a-glance overview of your internet status. Shows traffic-light indicators for <strong>DNS</strong> (are you using a fast, custom DNS?),
-          <strong>Speed</strong> (quality score from your last speed test), and <strong>Security</strong> (DNS leak test results).
-          Each indicator has a "Fix" button to jump to the relevant tool.
+          At-a-glance overview of your network health. A circular <strong>grade indicator</strong> (A+ through F) summarizes
+          DNS, speed, and security status. A <strong>sparkline chart</strong> shows your speed test history trend.
+          Status cards with trend arrows let you jump to the relevant tool to fix issues.
+        </p>
+      </div>
+
+      <div className="about-section">
+        <h2>Port Scanner</h2>
+        <p>
+          Scan a host for open, closed, and filtered ports. Built-in presets for common web, mail, SSH/RDP, and database ports.
+          Maximum 500 ports per scan. Results show service name and latency for each open port.
+          Export results as CSV or JSON.
+        </p>
+      </div>
+
+      <div className="about-section">
+        <h2>Network Info</h2>
+        <p>
+          View all your network details in one place: public IP, ISP, location, interface name, local IP, gateway,
+          MAC address, DNS servers, and DHCP mode. Copy any value with a single click.
         </p>
       </div>
 
       <div className="about-section">
         <h2>Keyboard Shortcuts</h2>
         <p>
-          <strong>Cmd+1</strong> DNS · <strong>Cmd+2</strong> Speed · <strong>Cmd+3</strong> Ping · <strong>Cmd+4</strong> Leak · <strong>Cmd+5</strong> Health · <strong>Cmd+6</strong> About
+          <strong>Cmd+1</strong> DNS · <strong>Cmd+2</strong> Speed · <strong>Cmd+3</strong> Ping · <strong>Cmd+4</strong> Leak · <strong>Cmd+5</strong> Dashboard · <strong>Cmd+6</strong> Ports · <strong>Cmd+7</strong> Info · <strong>Cmd+0</strong> About
         </p>
       </div>
 

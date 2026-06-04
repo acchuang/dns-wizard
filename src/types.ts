@@ -47,7 +47,7 @@ export interface ProfileDef {
 }
 
 // --- Navigation ---
-export type ActiveTool = "dns" | "speed" | "ping" | "leak" | "health" | "ports" | "wifi" | "info" | "about";
+export type ActiveTool = "dns" | "speed" | "ping" | "leak" | "health" | "ports" | "info" | "about";
 
 // --- Speed Test ---
 export interface StageResult {
@@ -183,23 +183,6 @@ export interface PortProgressEvent {
   port: number;
   status: string;
   progress: number;
-}
-
-// --- Wi-Fi Scanner ---
-export interface WifiNetwork {
-  ssid: string;
-  bssid: string;
-  rssi: number;
-  security: string;
-  channel: number;
-  band: string;
-  isCurrent: boolean;
-}
-
-export interface WifiScanState {
-  isRunning: boolean;
-  networks: WifiNetwork[];
-  error: string | null;
 }
 
 // --- Network Info ---

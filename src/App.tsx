@@ -11,7 +11,6 @@ import PingPanel from "./components/PingPanel";
 import LeakPanel from "./components/LeakPanel";
 import HealthPanel from "./components/HealthPanel";
 import PortScanPanel from "./components/PortScanPanel";
-import WifiPanel from "./components/WifiPanel";
 import NetworkInfoPanel from "./components/NetworkInfoPanel";
 import AboutPanel from "./components/AboutPanel";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -20,7 +19,7 @@ const initialSpeed: SpeedTestState = { status: "idle", result: null, error: null
 const initialPing: PingState = { host: "cloudflare.com", mode: "ping", isRunning: false, results: [], error: null };
 const initialLeak: LeakTestState = { status: "idle", result: null, error: null };
 
-const toolKeys: ActiveTool[] = ["dns", "speed", "ping", "leak", "health", "ports", "wifi", "info", "about"];
+const toolKeys: ActiveTool[] = ["dns", "speed", "ping", "leak", "health", "ports", "info", "about"];
 
 function AppInner() {
   const [showOnboarding, setShowOnboarding] = useState(!hasCompletedOnboarding());
@@ -76,7 +75,6 @@ function AppInner() {
           {activeTool === "leak" && <LeakPanel state={leakState} setState={setLeakState} configuredDns={appliedDns} />}
           {activeTool === "health" && <HealthPanel onNavigate={(t) => handleToolChange(t as ActiveTool)} />}
           {activeTool === "ports" && <PortScanPanel />}
-          {activeTool === "wifi" && <WifiPanel />}
           {activeTool === "info" && <NetworkInfoPanel />}
           {activeTool === "about" && <AboutPanel />}
         </div>

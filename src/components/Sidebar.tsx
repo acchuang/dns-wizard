@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { Globe, Zap, Radio, SearchCheck, Heart, Info, Eye, EyeOff, Shield, Wifi, Globe2 } from "lucide-react";
+import { Globe, Zap, Radio, SearchCheck, Heart, Info, Eye, EyeOff, Shield, Globe2 } from "lucide-react";
 import { ActiveTool, PublicIpInfo } from "../types";
 import { useSimpleMode } from "./SimpleModeContext";
 import { useTheme } from "./ThemeContext";
@@ -17,7 +17,6 @@ const tools: { id: ActiveTool; icon: typeof Globe; label: string }[] = [
   { id: "leak", icon: SearchCheck, label: "Leak" },
   { id: "health", icon: Heart, label: "Health" },
   { id: "ports", icon: Shield, label: "Ports" },
-  { id: "wifi", icon: Wifi, label: "Wi-Fi" },
   { id: "info", icon: Globe2, label: "Info" },
 ];
 
