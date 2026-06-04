@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { NetworkInfo, SpeedHistoryEntry, LatencyResult } from "../types";
 import { useSimpleMode } from "./SimpleModeContext";
+import { getHealthGradeClass } from "../utils/grades";
 
 interface HealthStatus {
   dns: "good" | "warn" | "bad" | "unknown";
@@ -10,12 +11,6 @@ interface HealthStatus {
   dnsDetail: string;
   speedDetail: string;
   securityDetail: string;
-}
-
-function getGradeClass(grade: string): "good" | "warn" | "bad" {
-  if (grade === "A+" || grade === "A" || grade === "B") return "good";
-  if (grade === "C" || grade === "D") return "warn";
-  return "bad";
 }
 
 const DNS_LABELS: Record<string, string> = {
@@ -152,7 +147,7 @@ function HealthPanel({ onNavigate }: { onNavigate: (tool: string) => void }) {
           );
           if (history.length > 0) {
             const latest = history[0];
-            const cls = getGradeClass(latest.qualityGrade);
+            const cls = getHealthGradeClass(latest.qualityGrade);
             speedStatus = cls;
             speedDetail = simpleMode
               ? cls === "good"

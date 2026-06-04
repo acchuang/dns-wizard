@@ -6,6 +6,7 @@ import {
   SpeedTestResult, LatencyResult, LatencyProgressEvent,
 } from "../types";
 import { useSimpleMode } from "./SimpleModeContext";
+import { getGradeClass, getGradeLabel } from "../utils/grades";
 import SpeedGauge from "./SpeedGauge";
 import ExportButton from "./ExportButton";
 
@@ -41,25 +42,6 @@ function formatTimestamp(iso: string): string {
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric" }) +
     " " +
     d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
-}
-
-function getGradeClass(grade: string): string {
-  if (grade === "A+") return "excellent";
-  if (grade === "A") return "great";
-  if (grade === "B") return "good";
-  if (grade === "C") return "fair";
-  if (grade === "D") return "poor";
-  if (grade === "F") return "bad";
-  return "empty";
-}
-
-function getGradeLabel(grade: string): string {
-  if (grade === "A+") return "Excellent";
-  if (grade === "A") return "Very Good";
-  if (grade === "B") return "Good";
-  if (grade === "C") return "Fair";
-  if (grade === "D") return "Poor";
-  return "Very Poor";
 }
 
 function SpeedPanel({ state, setState }: Props) {
