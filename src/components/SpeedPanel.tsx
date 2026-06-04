@@ -191,6 +191,12 @@ function SpeedPanel({ state, setState }: Props) {
   };
 
   const cancelTest = async () => {
+    setState((prev) => ({
+      ...prev,
+      status: "cancelled" as const,
+      currentStage: null,
+      testPhase: "idle" as const,
+    }));
     await invoke("cancel_speed_test");
   };
 
