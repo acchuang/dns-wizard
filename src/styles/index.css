@@ -126,7 +126,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), input:focus:not(:
 
 .speed-metric-label {
   color: var(--text-tertiary);
-  font-size: 7px;
+  font-size: 10px;
   margin-top: 1px;
 }
 
@@ -142,7 +142,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), input:focus:not(:
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .speed-stage-bar-row .stage-name {
@@ -266,7 +266,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), input:focus:not(:
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   background: var(--bg-input);
   border: 1px solid var(--border);
@@ -345,7 +345,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), input:focus:not(:
   width: 56px;
   padding: 6px 4px;
   text-align: center;
-  font-size: 9px;
+  font-size: 11px;
   color: var(--text-tertiary);
   line-height: 1.3;
   margin-bottom: 4px;
@@ -356,14 +356,14 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), input:focus:not(:
 }
 
 .sidebar-ip-label {
-  font-size: 8px;
+  font-size: 10px;
   color: var(--text-secondary);
   margin-bottom: 2px;
   letter-spacing: 0.5px;
 }
 
 .sidebar-ip-value {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--text-secondary);
 }
@@ -388,7 +388,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), input:focus:not(:
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 9px;
+  font-size: 11px;
   color: var(--text-tertiary);
   transition: background 0.2s;
 }
@@ -420,7 +420,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), input:focus:not(:
 }
 
 .health-subtitle {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--text-tertiary);
 }
 
@@ -510,7 +510,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), input:focus:not(:
 
 .health-card-detail {
   color: var(--text-tertiary);
-  font-size: 10px;
+  font-size: 11px;
   margin-top: 4px;
 }
 
@@ -520,7 +520,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), input:focus:not(:
   border: 1px solid var(--accent);
   background: transparent;
   color: var(--accent);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   cursor: pointer;
   margin-top: 8px;
@@ -555,7 +555,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), input:focus:not(:
 
 .health-metric-label {
   color: var(--text-tertiary);
-  font-size: 8px;
+  font-size: 10px;
   margin-top: 2px;
 }
 
@@ -696,7 +696,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), input:focus:not(:
 }
 
 .dns-profile-desc {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--text-tertiary);
   text-align: center;
   line-height: 1.3;
@@ -882,7 +882,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), input:focus:not(:
 
 .ping-summary-label {
   color: var(--text-tertiary);
-  font-size: 8px;
+  font-size: 10px;
   margin-top: 2px;
 }
 
@@ -945,7 +945,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), input:focus:not(:
 .leak-banner-title.danger { color: var(--danger); }
 
 .leak-banner-desc {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--text-secondary);
 }
 
@@ -990,7 +990,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), input:focus:not(:
   justify-content: center;
   color: #fff;
   font-weight: 700;
-  font-size: 9px;
+  font-size: 11px;
   flex-shrink: 0;
 }
 
@@ -1006,12 +1006,12 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), input:focus:not(:
 }
 
 .leak-server-provider {
-  font-size: 9px;
+  font-size: 11px;
   color: var(--text-tertiary);
 }
 
 .leak-server-badge {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 600;
   padding: 2px 8px;
   border-radius: 4px;
@@ -1050,7 +1050,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), input:focus:not(:
 }
 
 .leak-stat-label {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--text-tertiary);
   margin-top: 2px;
 }
@@ -1137,7 +1137,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), input:focus:not(:
 
 .about-stat-label {
   color: var(--text-tertiary);
-  font-size: 8px;
+  font-size: 10px;
   margin-top: 2px;
 }
 

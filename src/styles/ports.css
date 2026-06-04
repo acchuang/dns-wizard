@@ -91,7 +91,7 @@
 
 .port-summary-label {
   color: var(--text-tertiary);
-  font-size: 8px;
+  font-size: 10px;
   margin-top: 2px;
 }
 
@@ -106,7 +106,7 @@
   padding: 6px 8px;
   border-bottom: 1px solid var(--border);
   color: var(--text-tertiary);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
 }

@@ -21,7 +21,7 @@
 .sparkline-bar-bad { fill: var(--danger); }
 
 .sparkline-tooltip {
-  font-size: 10px;
+  font-size: 11px;
   padding: 4px 8px;
   background: var(--bg-card);
   border: 1px solid var(--border);
