@@ -4,9 +4,29 @@
   "windows": ["main"],
   "permissions": [
     "core:default",
-    "shell:allow-execute",
-    "shell:allow-spawn",
     "shell:allow-open",
-    "dialog:default"
+    "dialog:default",
+    {
+      "identifier": "shell:allow-execute",
+      "allow": [
+        { "cmd": "osascript", "name": "run-osascript", "args": true },
+        { "cmd": "route", "name": "run-route", "args": true },
+        { "cmd": "networksetup", "name": "run-networksetup", "args": true },
+        { "cmd": "dscacheutil", "name": "run-dscacheutil", "args": true },
+        { "cmd": "killall", "name": "run-killall", "args": true },
+        { "cmd": "/usr/sbin/traceroute", "name": "run-traceroute", "args": true }
+      ]
+    },
+    {
+      "identifier": "shell:allow-spawn",
+      "allow": [
+        { "cmd": "osascript", "name": "spawn-osascript", "args": true },
+        { "cmd": "route", "name": "spawn-route", "args": true },
+        { "cmd": "networksetup", "name": "spawn-networksetup", "args": true },
+        { "cmd": "dscacheutil", "name": "spawn-dscacheutil", "args": true },
+        { "cmd": "killall", "name": "spawn-killall", "args": true },
+        { "cmd": "/usr/sbin/traceroute", "name": "spawn-traceroute", "args": true }
+      ]
+    }
   ]
 }
