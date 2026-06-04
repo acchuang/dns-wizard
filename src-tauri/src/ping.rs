@@ -1,6 +1,5 @@
 use serde::{Serialize, Deserialize};
 use std::time::Instant;
-use std::process::Command;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
