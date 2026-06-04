@@ -47,6 +47,7 @@ function formatTimestamp(iso: string): string {
 function SpeedPanel({ state, setState }: Props) {
   const { simpleMode } = useSimpleMode();
   const mountedRef = useRef(true);
+  const [, setHistoryKey] = useState(0);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -366,18 +367,18 @@ function SpeedPanel({ state, setState }: Props) {
       {exportData.length > 0 && <ExportButton data={exportData} filename="speed-test" />}
 
       {history.length > 0 && (
-        <HistorySection history={history} stats={statsData} />
+        <HistorySection history={history} stats={statsData} onClear={() => setHistoryKey((k) => k + 1)} />
       )}
     </div>
   );
 }
 
-function HistorySection({ history, stats }: { history: SpeedHistoryEntry[]; stats: { min: number; max: number; avg: number } | null }) {
+function HistorySection({ history, stats, onClear }: { history: SpeedHistoryEntry[]; stats: { min: number; max: number; avg: number } | null; onClear: () => void }) {
   const [open, setOpen] = useState(true);
 
   const clearHistory = () => {
     localStorage.removeItem(HISTORY_KEY);
-    window.location.reload();
+    onClear();
   };
 
   const historyExportData = history.map((h) => ({
