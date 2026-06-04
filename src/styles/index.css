@@ -1096,7 +1096,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), input:focus:not(:
 }
 
 .about-section {
-  margin-bottom: 20px;
+  margin-bottom: 0;
 }
 
 .about-section h2 {
@@ -1111,6 +1111,61 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), input:focus:not(:
   color: var(--text-secondary);
   line-height: 1.6;
   margin: 0;
+}
+
+.about-card-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.about-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--card-radius);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.about-card-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.about-card-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.about-card-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.about-card-shortcut {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+}
+
+.about-card-desc {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.about-card-info {
+  grid-column: 1 / -1;
 }
 
 .about-stats {
