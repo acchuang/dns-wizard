@@ -317,6 +317,9 @@ async fn save_file(path: String, content: String) -> Result<(), String> {
         .map_err(|e| format!("Failed to write file: {}", e))
 }
 
+use speed_test::reset_speed_test;
+use latency_test::reset_latency_test;
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -329,7 +332,9 @@ pub fn run() {
             execute_admin_restore,
             run_speed_test,
             cancel_speed_test,
+            reset_speed_test,
             run_latency_test,
+            reset_latency_test,
             run_ping,
             run_traceroute,
             cancel_ping,

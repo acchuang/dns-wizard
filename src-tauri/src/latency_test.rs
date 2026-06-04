@@ -10,6 +10,12 @@ pub fn cancel_latency_test() {
     LATENCY_CANCEL.store(true, Ordering::SeqCst);
 }
 
+#[tauri::command]
+pub fn reset_latency_test() {
+    LATENCY_RUNNING.store(false, Ordering::SeqCst);
+    LATENCY_CANCEL.store(false, Ordering::SeqCst);
+}
+
 fn is_cancelled() -> bool {
     LATENCY_CANCEL.load(Ordering::SeqCst)
 }

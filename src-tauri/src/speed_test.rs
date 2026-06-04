@@ -12,6 +12,12 @@ pub fn cancel_speed_test() {
     SPEED_CANCEL.store(true, Ordering::SeqCst);
 }
 
+#[tauri::command]
+pub fn reset_speed_test() {
+    SPEED_RUNNING.store(false, Ordering::SeqCst);
+    SPEED_CANCEL.store(false, Ordering::SeqCst);
+}
+
 fn is_cancelled() -> bool {
     SPEED_CANCEL.load(Ordering::SeqCst)
 }
