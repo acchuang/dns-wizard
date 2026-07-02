@@ -25,7 +25,7 @@ function AboutPanel() {
           <div className="about-stat-label">Tools</div>
         </div>
         <div className="about-stat">
-          <div className="about-stat-value">16</div>
+          <div className="about-stat-value">22</div>
           <div className="about-stat-label">Commands</div>
         </div>
         <div className="about-stat">
