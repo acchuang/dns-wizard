@@ -20,12 +20,16 @@ pub struct HopResult {
 }
 
 static PING_CANCEL: AtomicBool = AtomicBool::new(false);
+static PING_RUNNING: AtomicBool = AtomicBool::new(false);
 
 pub fn cancel_ping() {
     PING_CANCEL.store(true, Ordering::SeqCst);
 }
 
 pub async fn run_ping(host: String, count: u32) -> Result<Vec<PingResult>, String> {
+    if PING_RUNNING.compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst).is_err() {
+        return Err("Ping already running".to_string());
+    }
     PING_CANCEL.store(false, Ordering::SeqCst);
     let mut results = Vec::new();
 
@@ -63,10 +67,12 @@ pub async fn run_ping(host: String, count: u32) -> Result<Vec<PingResult>, Strin
         }
     }
 
+    PING_RUNNING.store(false, Ordering::SeqCst);
     Ok(results)
 }
 
 static TRACE_CANCEL: AtomicBool = AtomicBool::new(false);
+static TRACE_RUNNING: AtomicBool = AtomicBool::new(false);
 
 pub fn cancel_traceroute() {
     TRACE_CANCEL.store(true, Ordering::SeqCst);
@@ -74,8 +80,11 @@ pub fn cancel_traceroute() {
 
 pub fn run_traceroute_sync(host: String, max_hops: u32) -> Result<Vec<HopResult>, String> {
     use std::process::{Command, Stdio};
-    use std::io::{BufRead, BufReader};
+    use std::io::{BufRead, BufReader, Read};
 
+    if TRACE_RUNNING.compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst).is_err() {
+        return Err("Traceroute already running".to_string());
+    }
     TRACE_CANCEL.store(false, Ordering::SeqCst);
 
     let traceroute_path = if std::path::Path::new("/usr/sbin/traceroute").exists() {
@@ -84,14 +93,29 @@ pub fn run_traceroute_sync(host: String, max_hops: u32) -> Result<Vec<HopResult>
         "traceroute"
     };
 
-    let mut child = Command::new(traceroute_path)
+    let mut child = match Command::new(traceroute_path)
         .args(["-m", &max_hops.to_string(), "-w", "2", &host])
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
-        .map_err(|e| format!("Failed to run traceroute: {}", e))?;
+    {
+        Ok(c) => c,
+        Err(e) => {
+            TRACE_RUNNING.store(false, Ordering::SeqCst);
+            return Err(format!("Failed to run traceroute: {}", e));
+        }
+    };
 
-    let stdout = child.stdout.take().ok_or_else(|| "Failed to capture stdout".to_string())?;
+    let stdout = match child.stdout.take() {
+        Some(s) => s,
+        None => {
+            let _ = child.kill();
+            let _ = child.wait();
+            TRACE_RUNNING.store(false, Ordering::SeqCst);
+            return Err("Failed to capture stdout".to_string());
+        }
+    };
+    let mut stderr_pipe = child.stderr.take();
     let reader = BufReader::new(stdout);
     let mut results = Vec::new();
 
@@ -161,11 +185,23 @@ pub fn run_traceroute_sync(host: String, max_hops: u32) -> Result<Vec<HopResult>
         });
     }
 
+    TRACE_RUNNING.store(false, Ordering::SeqCst);
+
     if TRACE_CANCEL.load(Ordering::SeqCst) {
         let _ = child.kill();
         let _ = child.wait();
-    } else {
-        let _ = child.wait();
+        return Ok(results);
+    }
+
+    let status = child.wait();
+    if let Ok(status) = status {
+        if !status.success() && results.is_empty() {
+            let mut stderr_buf = String::new();
+            if let Some(mut err) = stderr_pipe.take() {
+                let _ = err.read_to_string(&mut stderr_buf);
+            }
+            return Err(format!("traceroute failed: {}", stderr_buf.trim()));
+        }
     }
 
     Ok(results)

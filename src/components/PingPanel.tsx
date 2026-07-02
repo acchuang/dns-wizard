@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { PingState, PingResult, HopResult } from "../types";
 import { useSimpleMode } from "./SimpleModeContext";
+import { useMountedRef, runGuarded } from "../hooks/useTestRunner";
 import EmptyState from "./EmptyState";
 import ResultTable from "./ResultTable";
 import ExportButton from "./ExportButton";
@@ -20,28 +21,28 @@ const presets = [
 
 function PingPanel({ state, setState }: Props) {
   const cancelledRef = useRef(false);
+  const mountedRef = useMountedRef();
   const { simpleMode } = useSimpleMode();
 
   const runTest = async () => {
     cancelledRef.current = false;
     setState((prev) => ({ ...prev, isRunning: true, results: [], error: null }));
-    try {
-      if (state.mode === "ping") {
-        const results = await invoke<PingResult[]>("run_ping", { host: state.host, count: 5 });
+
+    await runGuarded<PingResult[] | HopResult[]>(mountedRef, {
+      run: () => state.mode === "ping"
+        ? invoke<PingResult[]>("run_ping", { host: state.host, count: 5 })
+        : invoke<HopResult[]>("run_traceroute", { host: state.host, maxHops: 20 }),
+      onSuccess: (results) => {
         if (!cancelledRef.current) {
           setState((prev) => ({ ...prev, isRunning: false, results }));
         }
-      } else {
-        const results = await invoke<HopResult[]>("run_traceroute", { host: state.host, maxHops: 20 });
+      },
+      onError: (message) => {
         if (!cancelledRef.current) {
-          setState((prev) => ({ ...prev, isRunning: false, results }));
+          setState((prev) => ({ ...prev, isRunning: false, error: message }));
         }
-      }
-    } catch (e) {
-      if (!cancelledRef.current) {
-        setState((prev) => ({ ...prev, isRunning: false, error: String(e) }));
-      }
-    }
+      },
+    });
   };
 
   const cancel = () => {

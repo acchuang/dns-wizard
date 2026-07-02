@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { ActiveTool, SpeedTestState, PingState, LeakTestState } from "./types";
+import { invoke } from "@tauri-apps/api/core";
+import { ActiveTool, SpeedTestState, PingState, LeakTestState, NetworkInfo } from "./types";
 import { ThemeProvider } from "./components/ThemeContext";
 import { SimpleModeProvider } from "./components/SimpleModeContext";
 import { ToastProvider } from "./components/ToastProvider";
@@ -40,6 +41,12 @@ function AppInner() {
       setTransitioning(false);
     }, 150);
   }, [activeTool]);
+
+  useEffect(() => {
+    invoke<NetworkInfo>("get_current_dns")
+      .then((info) => setAppliedDns(info.servers))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

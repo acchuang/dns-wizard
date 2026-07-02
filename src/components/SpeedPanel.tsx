@@ -1,12 +1,12 @@
-import { useRef, useEffect, useState } from "react";
+import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { listen, UnlistenFn } from "@tauri-apps/api/event";
 import {
   SpeedTestState, SpeedProgressEvent, StageResult, SpeedHistoryEntry,
-  SpeedTestResult, LatencyResult, LatencyProgressEvent,
+  SpeedTestResult, LatencyResult,
 } from "../types";
 import { useSimpleMode } from "./SimpleModeContext";
 import { useToast } from "./ToastProvider";
+import { useMountedRef, runGuarded } from "../hooks/useTestRunner";
 import { getGradeClass, getGradeLabel } from "../utils/grades";
 import SpeedGauge from "./SpeedGauge";
 import ExportButton from "./ExportButton";
@@ -48,13 +48,8 @@ function formatTimestamp(iso: string): string {
 function SpeedPanel({ state, setState }: Props) {
   const { simpleMode } = useSimpleMode();
   const { addToast } = useToast();
-  const mountedRef = useRef(true);
+  const mountedRef = useMountedRef();
   const [, setHistoryKey] = useState(0);
-
-  useEffect(() => {
-    mountedRef.current = true;
-    return () => { mountedRef.current = false; };
-  }, []);
 
   const runTest = async () => {
     setState({
@@ -63,117 +58,79 @@ function SpeedPanel({ state, setState }: Props) {
       testPhase: "latency", pingProgress: 0,
     });
 
-    let unlistenLatencyProgress: UnlistenFn | null = null;
-    let unlistenLatencyDone: UnlistenFn | null = null;
-    let unlistenSpeedProgress: UnlistenFn | null = null;
-    let unlistenStageDone: UnlistenFn | null = null;
+    await runGuarded<SpeedTestResult>(mountedRef, {
+      listeners: [
+        {
+          event: "latency-progress",
+          handler: () => setState((prev) => ({ ...prev, pingProgress: prev.pingProgress + 1 })),
+        },
+        {
+          event: "latency-done",
+          handler: (payload: LatencyResult) => setState((prev) => ({
+            ...prev, latencyResult: payload, testPhase: "download" as const, pingProgress: 20,
+          })),
+        },
+        {
+          event: "speed-progress",
+          handler: (payload: SpeedProgressEvent) => setState((prev) => ({
+            ...prev, currentMbps: payload.currentMbps, currentStage: payload.stageName,
+          })),
+        },
+        {
+          event: "speed-stage-done",
+          handler: (payload: StageResult) => setState((prev) => ({
+            ...prev, stageResults: [...prev.stageResults, payload],
+          })),
+        },
+      ],
+      run: () => invoke<SpeedTestResult>("run_speed_test"),
+      resetCommands: ["reset_speed_test", "reset_latency_test"],
+      onSuccess: (testResult) => {
+        if (!testResult.cancelled) {
+          saveHistory({
+            timestamp: new Date().toISOString(),
+            latency: testResult.latency,
+            stages: testResult.stages,
+            headlineMbps: testResult.headlineMbps,
+            qualityScore: testResult.qualityScore,
+            qualityGrade: testResult.qualityGrade,
+          });
+          addToast("info", "Speed test result saved");
+          window.dispatchEvent(new StorageEvent("storage", { key: "dnswizard-speed-history" }));
+        }
 
-    const cleanup = () => {
-      unlistenLatencyProgress?.();
-      unlistenLatencyDone?.();
-      unlistenSpeedProgress?.();
-      unlistenStageDone?.();
-    };
-
-    try {
-      unlistenLatencyProgress = await listen<LatencyProgressEvent>("latency-progress", () => {
-        if (!mountedRef.current) return;
+        const status = testResult.cancelled && testResult.stages.some((s: StageResult) => !s.error)
+          ? "cancelled" as const
+          : "done" as const;
         setState((prev) => ({
           ...prev,
-          pingProgress: prev.pingProgress + 1,
-        }));
-      });
-
-      unlistenLatencyDone = await listen<LatencyResult>("latency-done", (e) => {
-        if (!mountedRef.current) return;
-        setState((prev) => ({
-          ...prev,
-          latencyResult: e.payload,
-          testPhase: "download" as const,
-          pingProgress: 20,
-        }));
-      });
-
-      unlistenSpeedProgress = await listen<SpeedProgressEvent>("speed-progress", (e) => {
-        if (!mountedRef.current) return;
-        setState((prev) => ({
-          ...prev,
-          currentMbps: e.payload.currentMbps,
-          currentStage: e.payload.stageName,
-        }));
-      });
-
-      unlistenStageDone = await listen<StageResult>("speed-stage-done", (e) => {
-        if (!mountedRef.current) return;
-        setState((prev) => ({
-          ...prev,
-          stageResults: [...prev.stageResults, e.payload],
-        }));
-      });
-
-      const testResult = await invoke<SpeedTestResult>("run_speed_test");
-
-      if (!mountedRef.current) {
-        cleanup();
-        return;
-      }
-
-      if (!testResult.cancelled) {
-        saveHistory({
-          timestamp: new Date().toISOString(),
-          latency: testResult.latency,
-          stages: testResult.stages,
-          headlineMbps: testResult.headlineMbps,
-          qualityScore: testResult.qualityScore,
-          qualityGrade: testResult.qualityGrade,
-        });
-        addToast("info", "Speed test result saved");
-        window.dispatchEvent(new StorageEvent("storage", { key: "dnswizard-speed-history" }));
-      }
-
-      if (testResult.cancelled && testResult.stages.some((s: StageResult) => !s.error)) {
-        setState((prev) => ({
-          ...prev,
-          status: "cancelled" as const,
+          status,
           result: testResult,
           currentMbps: testResult.headlineMbps,
           currentStage: null,
           testPhase: "idle" as const,
         }));
-      } else {
-        setState((prev) => ({
-          ...prev,
-          status: "done" as const,
-          result: testResult,
-          currentMbps: testResult.headlineMbps,
-          currentStage: null,
-          testPhase: "idle" as const,
-        }));
-      }
-    } catch (e) {
-      if (!mountedRef.current) {
-        cleanup();
-        return;
-      }
-      if (String(e).includes("cancelled")) {
-        setState((prev) => ({
-          ...prev,
-          status: "cancelled" as const,
-          currentStage: null,
-          testPhase: "idle" as const,
-        }));
-      } else {
+      },
+      onError: (message, wasReset) => {
+        if (message.includes("cancelled")) {
+          setState((prev) => ({
+            ...prev,
+            status: "cancelled" as const,
+            currentStage: null,
+            testPhase: "idle" as const,
+          }));
+          return;
+        }
+        const displayError = wasReset ? "Test state was stuck and has been reset. Click Start Test to try again." : message;
         setState((prev) => ({
           ...prev,
           status: "error" as const,
-          error: String(e),
+          error: displayError,
           currentStage: null,
           testPhase: "idle" as const,
         }));
-      }
-    } finally {
-      cleanup();
-    }
+      },
+    });
   };
 
   const cancelTest = async () => {

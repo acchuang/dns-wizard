@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { LeakTestState, LeakResult } from "../types";
 import { useSimpleMode } from "./SimpleModeContext";
+import { useMountedRef, runGuarded } from "../hooks/useTestRunner";
 import { normalizedIncludes } from "../utils/ip";
 import EmptyState from "./EmptyState";
 
@@ -12,20 +13,22 @@ interface Props {
 
 function LeakPanel({ state, setState, configuredDns }: Props) {
   const { simpleMode } = useSimpleMode();
+  const mountedRef = useMountedRef();
 
   const runTest = async () => {
     setState({ status: "running", result: null, error: null });
-    try {
-      const result = await invoke<LeakResult>("run_dns_leak_test", {
-        configuredServers: configuredDns,
-      });
-      setState({ status: "done", result, error: null });
-    } catch (e) {
-      setState({ status: "error", result: null, error: String(e) });
-    }
+    await runGuarded<LeakResult>(mountedRef, {
+      run: () => invoke<LeakResult>("run_dns_leak_test", { configuredServers: configuredDns }),
+      onSuccess: (result) => setState({ status: "done", result, error: null }),
+      onError: (message) => setState({ status: "error", result: null, error: message }),
+    });
   };
 
   const { result } = state;
+
+  const leakCount = result
+    ? result.detectedServers.filter(s => !normalizedIncludes(result.configuredServers, s)).length
+    : 0;
 
   const simpleLabel = result?.isLeaking === true ? "DNS leak detected"
     : result?.isLeaking === false ? "No leaks detected"
@@ -112,8 +115,8 @@ function LeakPanel({ state, setState, configuredDns }: Props) {
               <div className="leak-stat-label">Servers</div>
             </div>
             <div className="leak-stat-tile">
-              <div className="leak-stat-value"                 style={{ color: (result.detectedServers.filter(s => !normalizedIncludes(result.configuredServers, s)).length > 0 ? "var(--danger)" : "var(--success)") }}>
-                {result.detectedServers.filter(s => !result.configuredServers.includes(s)).length}
+              <div className="leak-stat-value" style={{ color: (leakCount > 0 ? "var(--danger)" : "var(--success)") }}>
+                {leakCount}
               </div>
               <div className="leak-stat-label">Leaks</div>
             </div>

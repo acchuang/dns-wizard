@@ -4,10 +4,17 @@ use std::time::Duration;
 use tauri::Emitter;
 
 static PORT_CANCEL: AtomicBool = AtomicBool::new(false);
+static PORT_RUNNING: AtomicBool = AtomicBool::new(false);
 
 #[tauri::command]
 pub fn cancel_port_scan() {
     PORT_CANCEL.store(true, Ordering::SeqCst);
+}
+
+#[tauri::command]
+pub fn reset_port_scan() {
+    PORT_RUNNING.store(false, Ordering::SeqCst);
+    PORT_CANCEL.store(false, Ordering::SeqCst);
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -81,18 +88,19 @@ fn parse_port_range(input: &str) -> Result<Vec<u16>, String> {
 
 #[tauri::command]
 pub async fn run_port_scan(app: tauri::AppHandle, host: String, port_range: String) -> Result<Vec<PortResult>, String> {
-    if PORT_CANCEL.compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst).is_err() {
-        return Err("Port scan already running".to_string());
-    }
-
     let validated_host = crate::validate::validate_host(&host)?;
     let ports = parse_port_range(&port_range)?;
     let total = ports.len();
 
+    if PORT_RUNNING.compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst).is_err() {
+        return Err("Port scan already running".to_string());
+    }
+    PORT_CANCEL.store(false, Ordering::SeqCst);
+
     let mut results = Vec::new();
 
     for (i, port) in ports.iter().enumerate() {
-        if PORT_CANCEL.load(Ordering::SeqCst) && i > 0 {
+        if PORT_CANCEL.load(Ordering::SeqCst) {
             break;
         }
 
@@ -129,6 +137,6 @@ pub async fn run_port_scan(app: tauri::AppHandle, host: String, port_range: Stri
         }
     }
 
-    PORT_CANCEL.store(false, Ordering::SeqCst);
+    PORT_RUNNING.store(false, Ordering::SeqCst);
     Ok(results)
 }

@@ -88,6 +88,7 @@ pub fn get_current_dns() -> Result<NetworkInfo, String> {
     };
     Ok(NetworkInfo { service, servers })
 }
+#[cfg(test)]
 mod tests {
     use super::*;
 

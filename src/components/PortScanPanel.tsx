@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { listen, UnlistenFn } from "@tauri-apps/api/event";
 import { PortScanState, PortResult, PortProgressEvent } from "../types";
 import { useToast } from "./ToastProvider";
+import { useMountedRef, runGuarded } from "../hooks/useTestRunner";
 import EmptyState from "./EmptyState";
 import ExportButton from "./ExportButton";
 
@@ -27,41 +27,29 @@ const initialState: PortScanState = {
 function PortScanPanel() {
   const [state, setState] = useState<PortScanState>(initialState);
   const { addToast } = useToast();
-  const mountedRef = useRef(true);
-  const unlistenRef = useRef<UnlistenFn | null>(null);
-
-  useEffect(() => {
-    mountedRef.current = true;
-    return () => { mountedRef.current = false; unlistenRef.current?.(); };
-  }, []);
+  const mountedRef = useMountedRef();
 
   const runScan = async () => {
     if (state.isRunning) return;
     setState((prev) => ({ ...prev, isRunning: true, results: [], progress: 0, error: null }));
 
-    const unlisten = await listen<PortProgressEvent>("port-progress", (e) => {
-      if (!mountedRef.current) return;
-      setState((prev) => ({ ...prev, progress: e.payload.progress }));
-    });
-    unlistenRef.current = unlisten;
-
-    try {
-      const results = await invoke<PortResult[]>("run_port_scan", {
-        host: state.host,
-        portRange: state.portRange,
-      });
-      if (mountedRef.current) {
+    await runGuarded<PortResult[]>(mountedRef, {
+      listeners: [{
+        event: "port-progress",
+        handler: (payload: PortProgressEvent) => setState((prev) => ({ ...prev, progress: payload.progress })),
+      }],
+      run: () => invoke<PortResult[]>("run_port_scan", { host: state.host, portRange: state.portRange }),
+      resetCommands: ["reset_port_scan"],
+      onSuccess: (results) => {
         const openCount = results.filter((r) => r.status === "open").length;
         setState((prev) => ({ ...prev, isRunning: false, results, total: results.length }));
         addToast(openCount > 0 ? "info" : "info", `Found ${openCount} open port${openCount !== 1 ? "s" : ""}`);
-      }
-    } catch (e) {
-      if (mountedRef.current) {
-        setState((prev) => ({ ...prev, isRunning: false, error: String(e) }));
-      }
-    } finally {
-      unlisten();
-    }
+      },
+      onError: (message, wasReset) => {
+        const displayError = wasReset ? "Scan state was stuck and has been reset. Click Scan to try again." : message;
+        setState((prev) => ({ ...prev, isRunning: false, error: displayError }));
+      },
+    });
   };
 
   const cancelScan = async () => {

@@ -78,6 +78,13 @@ async fn execute_admin_apply(
 ) -> Result<ConfigResult, String> {
     use tauri_plugin_shell::ShellExt;
 
+    let primary = validate::validate_dns_ip(&primary)?;
+    let secondary = if secondary.trim().is_empty() {
+        String::new()
+    } else {
+        validate::validate_dns_ip(&secondary)?
+    };
+
     let service = detect_network_service().map_err(|e| e)?;
 
     let dns_args = if secondary.is_empty() {
@@ -252,45 +259,8 @@ async fn run_dns_leak_test(configured_servers: Vec<String>) -> Result<dns_leak::
 
 #[tauri::command]
 async fn get_public_ip() -> Result<PublicIpInfo, String> {
-    let client = reqwest::Client::builder()
-        .user_agent("DNSWizard/1.0")
-        .timeout(std::time::Duration::from_secs(5))
-        .build()
-        .map_err(|e| format!("Failed to create HTTP client: {}", e))?;
-
-    let ip = client.get("https://api.ipify.org")
-        .send()
-        .await
-        .map_err(|e| format!("Failed to fetch IP: {}", e))?
-        .text()
-        .await
-        .map_err(|e| format!("Failed to read IP response: {}", e))?
-        .trim()
-        .to_string();
-
-    let response = client.get("https://ipinfo.io/")
-        .query(&[("token", "demo")])
-        .send()
-        .await;
-    let (isp_name, city, country) = match response {
-        Ok(resp) => {
-            let body = resp.text().await.unwrap_or_default();
-            let v: serde_json::Value = serde_json::from_str(&body).unwrap_or_default();
-            (
-                v["org"].as_str().unwrap_or("Unknown").to_string(),
-                v["city"].as_str().unwrap_or("").to_string(),
-                v["country"].as_str().unwrap_or("").to_string(),
-            )
-        }
-        Err(_) => ("Unknown".to_string(), String::new(), String::new()),
-    };
-
-    Ok(PublicIpInfo {
-        ip,
-        isp: isp_name,
-        city,
-        country,
-    })
+    let (ip, isp, city, country) = network_info::fetch_public_ip().await?;
+    Ok(PublicIpInfo { ip, isp, city, country })
 }
 
 #[tauri::command]
@@ -310,11 +280,16 @@ async fn save_file(path: String, content: String) -> Result<(), String> {
     if !allowed_extensions.contains(&ext) {
         return Err(format!("File extension .{} not allowed. Use .csv, .json, or .txt", ext));
     }
-    if let Some(parent) = path_buf.parent() {
-        if !parent.exists() {
-            std::fs::create_dir_all(parent)
-                .map_err(|e| format!("Failed to create directory: {}", e))?;
-        }
+    let home = std::env::var("HOME").map_err(|_| "Could not determine home directory".to_string())?;
+    let home = std::fs::canonicalize(&home).map_err(|_| "Could not resolve home directory".to_string())?;
+    let parent = path_buf.parent().ok_or_else(|| "Path has no parent directory".to_string())?;
+    if !parent.exists() {
+        return Err("Destination directory does not exist".to_string());
+    }
+    let canonical_parent = std::fs::canonicalize(parent)
+        .map_err(|e| format!("Failed to resolve destination directory: {}", e))?;
+    if !canonical_parent.starts_with(&home) {
+        return Err("Save location must be within your home directory".to_string());
     }
     std::fs::write(&path, content)
         .map_err(|e| format!("Failed to write file: {}", e))
@@ -322,7 +297,7 @@ async fn save_file(path: String, content: String) -> Result<(), String> {
 
 use speed_test::reset_speed_test;
 use latency_test::reset_latency_test;
-use port_scan::{run_port_scan, cancel_port_scan};
+use port_scan::{run_port_scan, cancel_port_scan, reset_port_scan};
 use network_info::run_network_info;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -351,6 +326,7 @@ pub fn run() {
             save_file,
             run_port_scan,
             cancel_port_scan,
+            reset_port_scan,
             run_network_info,
         ])
         .run(tauri::generate_context!())

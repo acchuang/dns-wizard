@@ -17,7 +17,7 @@ pub struct NetworkInfoResult {
     pub dhcp_mode: String,
 }
 
-async fn fetch_public_ip() -> Result<(String, String, String, String), String> {
+pub async fn fetch_public_ip() -> Result<(String, String, String, String), String> {
     let client = reqwest::Client::builder()
         .user_agent("DNSWizard/1.0")
         .timeout(std::time::Duration::from_secs(5))

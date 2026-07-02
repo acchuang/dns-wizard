@@ -11,16 +11,28 @@ pub fn validate_host(host: &str) -> Result<String, String> {
     if trimmed.len() > 253 {
         return Err("Host name too long".to_string());
     }
-    let re = Regex::new(HOST_REGEX).map_err(|e| format!("Regex error: {}", e))?;
-    if !re.is_match(trimmed) {
-        return Err("Invalid host format".to_string());
-    }
     if let Ok(ip) = trimmed.parse::<IpAddr>() {
         if is_private_ip(&ip) {
             return Err(format!("Cannot ping private/internal IP: {}", ip));
         }
+        return Ok(trimmed.to_string());
+    }
+    let re = Regex::new(HOST_REGEX).map_err(|e| format!("Regex error: {}", e))?;
+    if !re.is_match(trimmed) {
+        return Err("Invalid host format".to_string());
     }
     Ok(trimmed.to_string())
+}
+
+/// Strict DNS server address validator: only a bare IPv4/IPv6 literal is
+/// accepted, so the result can never contain characters (quotes, `&`, etc.)
+/// that would let it break out of the shell/AppleScript command it's spliced into.
+pub fn validate_dns_ip(ip: &str) -> Result<String, String> {
+    let trimmed = ip.trim();
+    trimmed
+        .parse::<IpAddr>()
+        .map(|_| trimmed.to_string())
+        .map_err(|_| format!("Invalid DNS server address: {}", ip))
 }
 
 fn is_private_ip(ip: &IpAddr) -> bool {
