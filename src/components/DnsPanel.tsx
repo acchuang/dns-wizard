@@ -35,6 +35,7 @@ function DnsPanel({ onDnsApplied }: Props) {
   const [quickFixApplying, setQuickFixApplying] = useState(false);
   const [quickFixApplied, setQuickFixApplied] = useState(false);
   const [quickFixError, setQuickFixError] = useState<string | null>(null);
+  const [showWizard, setShowWizard] = useState(false);
   const benchmarkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { simpleMode } = useSimpleMode();
   const { addToast } = useToast();
@@ -217,9 +218,54 @@ function DnsPanel({ onDnsApplied }: Props) {
     }));
   }, []);
 
+  if (showWizard) {
+    return (
+      <div className="dns-panel">
+        <button className="dns-wizard-link back" onClick={() => setShowWizard(false)}>
+          &larr; Back to Quick Fix
+        </button>
+        <ProgressDots step={state.step} applied={state.applied} />
+        <div style={{ width: "100%", flex: 1, display: "flex", overflow: "hidden" }}>
+          {state.step === 1 && (
+            <Step1_ChooseProfile
+              onSelect={selectProfile}
+              applied={state.applied}
+              appliedProfile={state.appliedProfile}
+              networkInfo={networkInfo}
+              selectedProfile={state.selectedProfile}
+            />
+          )}
+          {state.step === 2 && (
+            <Step2_Benchmark
+              profile={state.selectedProfile}
+              isRunning={state.isRunning}
+              error={state.error}
+              onStart={runBenchmark}
+            />
+          )}
+          {state.step === 3 && (
+            <Step3_Results
+              results={state.benchmarkResults}
+              selectedIp={state.selectedIp}
+              error={state.error}
+              applied={state.applied}
+              isApplying={state.isApplying}
+              isFlushing={isFlushing}
+              onSelect={selectResult}
+              onAuthorizeApply={authorizeApply}
+              onAuthorizeRestore={authorizeRestore}
+              onFlushCache={handleFlushCache}
+              onStartOver={startOver}
+            />
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="dns-panel">
-      <div className="dns-quick-fix">
+      <div className="dns-quick-fix hero">
         <h3>
           <Tooltip text="Benchmarks all DNS providers and applies the fastest one automatically — no need to pick a profile.">
             Quick Fix
@@ -234,7 +280,7 @@ function DnsPanel({ onDnsApplied }: Props) {
         </button>
         {quickFixError && <p style={{ color: "var(--danger)", fontSize: 13, margin: 0 }}>{quickFixError}</p>}
         {quickFix && !quickFixRunning && !quickFixError && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 4 }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, marginTop: 4 }}>
             <p style={{ fontSize: 14, color: "var(--success)", margin: 0, fontWeight: 600 }}>
               Fastest: {quickFix.providerName} ({quickFix.providerIp}) &mdash; {quickFix.latencyMs}ms
             </p>
@@ -249,41 +295,9 @@ function DnsPanel({ onDnsApplied }: Props) {
             {quickFixApplied && <p style={{ fontSize: 13, color: "var(--success)", margin: 0 }}>DNS applied successfully!</p>}
           </div>
         )}
-      </div>
-      <ProgressDots step={state.step} applied={state.applied} />
-      <div style={{ width: "100%", flex: 1, display: "flex", overflow: "hidden" }}>
-        {state.step === 1 && (
-          <Step1_ChooseProfile
-            onSelect={selectProfile}
-            applied={state.applied}
-            appliedProfile={state.appliedProfile}
-            networkInfo={networkInfo}
-            selectedProfile={state.selectedProfile}
-          />
-        )}
-        {state.step === 2 && (
-          <Step2_Benchmark
-            profile={state.selectedProfile}
-            isRunning={state.isRunning}
-            error={state.error}
-            onStart={runBenchmark}
-          />
-        )}
-        {state.step === 3 && (
-          <Step3_Results
-            results={state.benchmarkResults}
-            selectedIp={state.selectedIp}
-            error={state.error}
-            applied={state.applied}
-            isApplying={state.isApplying}
-            isFlushing={isFlushing}
-            onSelect={selectResult}
-            onAuthorizeApply={authorizeApply}
-            onAuthorizeRestore={authorizeRestore}
-            onFlushCache={handleFlushCache}
-            onStartOver={startOver}
-          />
-        )}
+        <button className="dns-wizard-link" onClick={() => setShowWizard(true)}>
+          Want more control? Choose a profile instead &rarr;
+        </button>
       </div>
     </div>
   );

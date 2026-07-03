@@ -622,6 +622,54 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), input:focus:not(:
   margin: 0 0 10px 0;
 }
 
+.dns-quick-fix.hero {
+  flex: 1;
+  margin-bottom: 0;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 4px;
+}
+
+.dns-quick-fix.hero h3 {
+  font-size: 22px;
+}
+
+.dns-quick-fix.hero p {
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.dns-quick-fix.hero .btn-accent {
+  font-size: 15px;
+  padding: 12px 28px;
+}
+
+.dns-wizard-link {
+  border: none;
+  background: transparent;
+  color: var(--accent);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.dns-wizard-link:hover {
+  text-decoration: underline;
+}
+
+.dns-quick-fix.hero .dns-wizard-link {
+  margin-top: 20px;
+}
+
+.dns-wizard-link.back {
+  align-self: flex-start;
+  margin-bottom: 8px;
+}
+
 .dns-step-wrapper {
   flex: 1;
   width: 100%;
