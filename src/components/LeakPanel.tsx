@@ -19,7 +19,13 @@ function LeakPanel({ state, setState, configuredDns }: Props) {
     setState({ status: "running", result: null, error: null });
     await runGuarded<LeakResult>(mountedRef, {
       run: () => invoke<LeakResult>("run_dns_leak_test", { configuredServers: configuredDns }),
-      onSuccess: (result) => setState({ status: "done", result, error: null }),
+      onSuccess: (result) => {
+        setState({ status: "done", result, error: null });
+        try {
+          localStorage.setItem("dnswizard-leak-result", JSON.stringify({ isLeaking: result.isLeaking, timestamp: Date.now() }));
+        } catch {}
+        window.dispatchEvent(new Event("leak-test-complete"));
+      },
       onError: (message) => setState({ status: "error", result: null, error: message }),
     });
   };

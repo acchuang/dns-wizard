@@ -149,6 +149,23 @@ function HealthPanel({ onNavigate }: { onNavigate: (tool: string) => void }) {
     let secDetail = simpleModeRef.current
       ? "Run a leak test to check"
       : "No leak test results yet — run a DNS leak test to verify security";
+    try {
+      const rawLeak = localStorage.getItem("dnswizard-leak-result");
+      if (rawLeak) {
+        const leak: { isLeaking: boolean | null; timestamp: number } = JSON.parse(rawLeak);
+        const when = new Date(leak.timestamp).toLocaleDateString();
+        if (leak.isLeaking === false) {
+          secStatus = "good";
+          secDetail = simpleModeRef.current ? "No DNS leaks" : `Last leak test (${when}): no leaks detected`;
+        } else if (leak.isLeaking === true) {
+          secStatus = "bad";
+          secDetail = simpleModeRef.current ? "DNS leak detected" : `Last leak test (${when}): queries leaking outside configured DNS`;
+        } else {
+          secStatus = "warn";
+          secDetail = simpleModeRef.current ? "No baseline — apply a DNS profile" : `Last leak test (${when}): no baseline — apply a DNS profile first`;
+        }
+      }
+    } catch {}
 
     setHealth({ dns: dnsStatus, speed: speedStatus, security: secStatus, dnsDetail, speedDetail, securityDetail: secDetail });
   }, []);
@@ -161,9 +178,11 @@ function HealthPanel({ onNavigate }: { onNavigate: (tool: string) => void }) {
     const handler = () => { checkHealth(); };
     window.addEventListener("speed-test-complete", handler);
     window.addEventListener("dns-applied", handler);
+    window.addEventListener("leak-test-complete", handler);
     return () => {
       window.removeEventListener("speed-test-complete", handler);
       window.removeEventListener("dns-applied", handler);
+      window.removeEventListener("leak-test-complete", handler);
     };
   }, [checkHealth]);
 
