@@ -24,7 +24,6 @@ function LeakPanel({ state, setState, configuredDns }: Props) {
         try {
           localStorage.setItem("dnswizard-leak-result", JSON.stringify({ isLeaking: result.isLeaking, timestamp: Date.now() }));
         } catch {}
-        window.dispatchEvent(new Event("leak-test-complete"));
       },
       onError: (message) => setState({ status: "error", result: null, error: message }),
     });

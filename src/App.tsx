@@ -63,6 +63,8 @@ function AppInner() {
   }, []);
 
   const handleDnsApplied = (primary: string | null, secondary: string | null) => {
+    // DNS changed — any previous leak verdict no longer applies
+    localStorage.removeItem("dnswizard-leak-result");
     if (primary) {
       setAppliedDns([primary, secondary ?? ""].filter(Boolean));
     } else {

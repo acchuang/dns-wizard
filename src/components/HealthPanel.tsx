@@ -174,18 +174,6 @@ function HealthPanel({ onNavigate }: { onNavigate: (tool: string) => void }) {
     checkHealth().finally(() => setLoading(false));
   }, [checkHealth]);
 
-  useEffect(() => {
-    const handler = () => { checkHealth(); };
-    window.addEventListener("speed-test-complete", handler);
-    window.addEventListener("dns-applied", handler);
-    window.addEventListener("leak-test-complete", handler);
-    return () => {
-      window.removeEventListener("speed-test-complete", handler);
-      window.removeEventListener("dns-applied", handler);
-      window.removeEventListener("leak-test-complete", handler);
-    };
-  }, [checkHealth]);
-
   const speedMetrics = useSpeedMetrics();
   const { history } = speedMetrics;
   const grade = computeOverallGrade(health, history);

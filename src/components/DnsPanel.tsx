@@ -76,12 +76,11 @@ function DnsPanel({ onDnsApplied }: Props) {
   }, []);
 
   const setBenchmarkResults = useCallback((results: DnsProvider[]) => {
-    setState((prev) => ({
-      ...prev,
-      benchmarkResults: results,
-      isRunning: false,
-      step: 3,
-    }));
+    setState((prev) => {
+      // benchmark resolved after the user backed out — drop the stale result
+      if (!prev.isRunning) return prev;
+      return { ...prev, benchmarkResults: results, isRunning: false, step: 3 };
+    });
   }, []);
 
   const setError = useCallback((error: string | null) => {
@@ -218,10 +217,15 @@ function DnsPanel({ onDnsApplied }: Props) {
     }));
   }, []);
 
+  const closeWizard = useCallback(() => {
+    setShowWizard(false);
+    startOver();
+  }, [startOver]);
+
   if (showWizard) {
     return (
       <div className="dns-panel">
-        <button className="dns-wizard-link back" onClick={() => setShowWizard(false)}>
+        <button className="dns-wizard-link back" onClick={closeWizard}>
           &larr; Back to Quick Fix
         </button>
         <ProgressDots step={state.step} applied={state.applied} />
