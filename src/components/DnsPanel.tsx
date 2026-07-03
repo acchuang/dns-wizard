@@ -62,10 +62,12 @@ function DnsPanel({ onDnsApplied }: Props) {
       await invoke<ConfigResult>("flush_dns_cache");
       refreshNetworkInfo();
       addToast("success", "DNS cache flushed");
-    } catch {} finally {
+    } catch {
+      addToast("error", "Failed to flush DNS cache");
+    } finally {
       setIsFlushing(false);
     }
-  }, [isFlushing, refreshNetworkInfo]);
+  }, [isFlushing, refreshNetworkInfo, addToast]);
 
   const selectProfile = useCallback((profile: Profile) => {
     setState((prev) => ({ ...prev, selectedProfile: profile, step: 2 }));

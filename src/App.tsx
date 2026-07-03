@@ -60,7 +60,7 @@ function AppInner() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [handleToolChange]);
 
   const handleDnsApplied = (primary: string | null, secondary: string | null) => {
     // DNS changed — any previous leak verdict no longer applies

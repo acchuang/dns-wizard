@@ -49,14 +49,14 @@ function Sidebar({ activeTool, onToolChange }: Props) {
           <div className="sidebar-ip-value">{ipInfo.ip}</div>
         </div>
       )}
-      {tools.map((tool) => {
+      {tools.map((tool, i) => {
         const Icon = tool.icon;
         return (
           <button
             key={tool.id}
             className={`sidebar-btn ${activeTool === tool.id ? 'active' : ''}`}
             onClick={() => onToolChange(tool.id)}
-            title={tool.label}
+            title={`${tool.label} (⌘${i + 1})`}
             aria-label={tool.label}
             aria-pressed={activeTool === tool.id}
           >
@@ -86,7 +86,7 @@ function Sidebar({ activeTool, onToolChange }: Props) {
       <button
         className={`sidebar-btn ${activeTool === 'about' ? 'active' : ''}`}
         onClick={() => onToolChange("about")}
-        title="About"
+        title="About (⌘8)"
         aria-label="About"
         aria-pressed={activeTool === "about"}
       >
