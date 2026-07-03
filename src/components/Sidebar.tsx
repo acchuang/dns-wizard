@@ -61,6 +61,7 @@ function Sidebar({ activeTool, onToolChange }: Props) {
             aria-pressed={activeTool === tool.id}
           >
             <Icon size={20} />
+            <span className="sidebar-btn-label">{tool.label}</span>
           </button>
         );
       })}
@@ -90,6 +91,7 @@ function Sidebar({ activeTool, onToolChange }: Props) {
         aria-pressed={activeTool === "about"}
       >
         <Info size={20} />
+        <span className="sidebar-btn-label">About</span>
       </button>
     </div>
   );
