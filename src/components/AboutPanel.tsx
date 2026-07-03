@@ -1,7 +1,7 @@
 import { open } from "@tauri-apps/plugin-shell";
 
 const tools = [
-  { icon: "🌐", name: "DNS Wizard", shortcut: "Cmd+1", desc: "Choose a DNS profile (Gamer, Privacy, Family, etc.), benchmark servers, and apply the fastest one. Use Quick Fix for one-click optimization." },
+  { icon: "🌐", name: "DNS Wizard", shortcut: "Cmd+1", desc: "Quick Fix benchmarks all providers and applies the fastest one in a single click. Prefer control? Choose a profile (Gamer, Privacy, Family, etc.) and pick from ranked results." },
   { icon: "⚡", name: "Speed Test", shortcut: "Cmd+2", desc: "Two-phase network quality assessment: latency + jitter + packet loss, then multi-stage downloads. Composite Quality Score from A+ to F. History with min/avg/max stats." },
   { icon: "📡", name: "Ping & Traceroute", shortcut: "Cmd+3", desc: "TCP ping to measure latency (5 probes, port 443). Traceroute maps each hop (up to 20, 2s timeout). Presets for Cloudflare, Google, Quad9. Export as CSV or JSON." },
   { icon: "🔍", name: "DNS Leak Test", shortcut: "Cmd+4", desc: "Detects whether your DNS queries go through the servers you configured. Apply a DNS profile first, then run the test to establish a baseline." },
@@ -60,7 +60,7 @@ function AboutPanel() {
           <span className="about-card-name">Shortcuts & Tips</span>
         </div>
         <p className="about-card-desc">
-          <strong>Cmd+0</strong> About · Toggle the <strong>eye icon</strong> in the sidebar to switch between detailed and simple views. Simple mode hides technical numbers and shows plain-English ratings.
+          <strong>Cmd+1–7</strong> switch tools · <strong>Cmd+8</strong> About · Toggle the <strong>eye icon</strong> in the sidebar to switch between detailed and simple views. Simple mode hides technical numbers and shows plain-English ratings.
         </p>
       </div>
 

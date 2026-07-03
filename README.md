@@ -1,26 +1,37 @@
 # 🧙‍♂️ DNS Wizard
 **Make your internet feel like new.**
 
-DNS Wizard is a high-performance, noob-friendly system utility that analyzes your local network and optimizes your DNS settings with a single click. Built for users who want the benefits of low-latency DNS without having to navigate scary system network panels.
+DNS Wizard is a noob-friendly, 7-tool network utility suite for macOS. It optimizes your DNS with one click and bundles the network diagnostics you'd otherwise need a terminal for — speed testing, ping/traceroute, leak detection, port scanning — behind a clean, guided UI.
 
-## ✨ Features
+📦 **[Download the latest release](https://github.com/acchuang/dns-wizard/releases)** (Apple Silicon `.dmg`)
 
-- **🚀 Speed-Dating Engine**: Performs real-time benchmarks against the world's fastest DNS providers (Cloudflare, Google, Quad9, etc.) to find the absolute fastest server *for your specific location*.
-- **🎯 Outcome-Based Profiles**: Choose a "Recipe" instead of an IP address:
-  - 🎮 **Gamer**: Optimized for the lowest possible latency.
-  - 🛡️ **Privacy**: Routes traffic through privacy-respecting providers.
-  - 👨‍👩‍👧 **Family**: Automatic filtering of adult content and malicious sites.
-  - 🚫 **Ad-Free**: Integrates DNS-level ad-blocking to clean up your web experience.
-  - ⚖️ **Balanced**: A stable, high-speed default.
-- **🛠️ One-Click Application**: Native integration with macOS (`networksetup`) to apply settings instantly with admin authorization.
-- **🔄 Safety Net**: A built-in "Restore" function to instantly put your network back to automatic (DHCP) settings.
-- **🎨 Modern Wizard UX**: A sleek, 3-step guided experience designed for non-technical users.
+## ✨ Tools
+
+- **🌐 DNS Wizard** (⌘1): **Quick Fix** benchmarks the world's fastest DNS providers (Cloudflare, Google, Quad9, etc.) against *your* connection and applies the winner in one click. Want more control? Choose an outcome-based profile instead:
+  - 🎮 **Gamer** — lowest possible latency
+  - 🛡️ **Privacy** — privacy-respecting providers
+  - 👨‍👩‍👧 **Family** — filters adult content and malicious sites
+  - 🚫 **Ad-Free** — DNS-level ad blocking
+  - ⚖️ **Balanced** — a stable, high-speed default
+  - …plus Control D, OpenDNS, and Comodo Secure
+- **⚡ Speed Test** (⌘2): Two-phase network quality assessment — latency, jitter, and packet loss, then multi-stage downloads. Composite Quality Score from A+ to F, with history.
+- **📡 Ping & Traceroute** (⌘3): TCP ping and hop-by-hop traceroute with provider presets. Export as CSV or JSON.
+- **🔍 DNS Leak Test** (⌘4): Verifies your queries actually go through the DNS servers you configured.
+- **♥ Dashboard** (⌘5): At-a-glance network health — overall grade ring, speed history sparkline, and status cards for DNS, Speed, and Security.
+- **🛡 Port Scanner** (⌘6): Scan a host for open, closed, and filtered ports with presets for common services.
+- **ℹ️ Network Info** (⌘7): Public IP, ISP, location, interface, gateway, MAC, DNS servers, and DHCP mode — copy any value.
+
+## 🎨 UX niceties
+
+- **🔄 Safety Net**: One-click restore to automatic (DHCP) DNS.
+- **👁 Simple mode**: Hides technical numbers and shows plain-English ratings.
+- **🌗 Light/dark/auto themes**, keyboard shortcuts (⌘1–8), and zero telemetry.
 
 ## 🚀 Tech Stack
 
-- **Backend**: Rust 🦀 (utilizing `tokio` for async and `trust-dns-resolver` for precise timing).
-- **Frontend**: React + TypeScript + Framer Motion + Lucide-React.
-- **Core Framework**: [Tauri](https://tauri.app/) (Provides the security and speed of Rust with the flexibility of a web frontend, resulting in a tiny binary size).
+- **Backend**: Rust 🦀 (`tokio` for async, `hickory-resolver` for precise DNS timing).
+- **Frontend**: React + TypeScript + Lucide-React.
+- **Core Framework**: [Tauri](https://tauri.app/) — Rust's security and speed with a web frontend, in a tiny binary.
 
 ## 🛠️ Installation & Setup
 
@@ -30,21 +41,22 @@ DNS Wizard is a high-performance, noob-friendly system utility that analyzes you
 - **Tauri CLI**: `npm install -g @tauri-apps/cli`
 
 ### Running in Development Mode
-\`\`\`bash
+```bash
 # Install dependencies
 npm install
 
 # Start the development environment
 npm run tauri dev
-\`\`\`
+```
 
 ### Building for Production
-\`\`\`bash
+```bash
 npm run tauri build
-\`\`\`
+```
 
 ## ⚠️ Important Usage Notes
-Modifying network settings requires elevated permissions. To use the **Apply** and **Restore** features, the application must be run with **sudo/root** privileges on **macOS**.
+
+Applying DNS settings, restoring DHCP, and flushing the DNS cache modify system network settings, so macOS shows a native **administrator password prompt** for those actions. You do **not** need to run the app as root — everything else works without elevated permissions.
 
 > **Note**: DNS Wizard is currently macOS-only. Windows support is not yet available.
 
