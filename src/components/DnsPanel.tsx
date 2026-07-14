@@ -8,6 +8,7 @@ import Step1_ChooseProfile from "./Step1_ChooseProfile";
 import Step2_Benchmark from "./Step2_Benchmark";
 import Step3_Results from "./Step3_Results";
 import Tooltip from "./Tooltip";
+import PaneHeader from "./PaneHeader";
 
 const initialState: WizardState = {
   step: 1,
@@ -271,6 +272,7 @@ function DnsPanel({ onDnsApplied }: Props) {
 
   return (
     <div className="dns-panel">
+      <PaneHeader tool="dns" />
       <div className="dns-quick-fix hero">
         <h3>
           <Tooltip text="Benchmarks all DNS providers and applies the fastest one automatically — no need to pick a profile.">

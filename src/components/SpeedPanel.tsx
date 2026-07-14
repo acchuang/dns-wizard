@@ -10,6 +10,7 @@ import { useMountedRef, runGuarded } from "../hooks/useTestRunner";
 import { getGradeClass, getGradeLabel } from "../utils/grades";
 import SpeedGauge from "./SpeedGauge";
 import ExportButton from "./ExportButton";
+import PaneHeader from "./PaneHeader";
 
 
 interface Props {
@@ -170,9 +171,7 @@ function SpeedPanel({ state, setState }: Props) {
 
   return (
     <div className="speed-panel">
-      <h2 style={{ fontSize: 20, fontWeight: 700, color: "var(--text-primary)", margin: 0 }}>
-        Speed Test
-      </h2>
+      <PaneHeader tool="speed" title="Speed Test" />
 
       <SpeedGauge
         result={state.result}

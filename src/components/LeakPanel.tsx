@@ -4,6 +4,7 @@ import { useSimpleMode } from "./SimpleModeContext";
 import { useMountedRef, runGuarded } from "../hooks/useTestRunner";
 import { normalizedIncludes } from "../utils/ip";
 import EmptyState from "./EmptyState";
+import PaneHeader from "./PaneHeader";
 
 interface Props {
   state: LeakTestState;
@@ -50,7 +51,7 @@ function LeakPanel({ state, setState, configuredDns }: Props) {
 
   return (
     <div className="leak-panel">
-      <h2>DNS Leak Test</h2>
+      <PaneHeader tool="leak" title="DNS Leak Test" />
 
       {state.status === "idle" && !result && configuredDns.length > 0 && (
         <EmptyState icon="🔒" title="DNS Leak Test" description="Test whether your DNS queries are going through your configured servers" />

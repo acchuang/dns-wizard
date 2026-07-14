@@ -73,7 +73,7 @@ function AppInner() {
   };
 
   return (
-    <div style={{ display: "flex", width: "100vw", height: "100vh", backgroundColor: "var(--bg-app)" }}>
+    <div style={{ display: "flex", width: "100vw", height: "100vh" }}>
       {showOnboarding && <OnboardingModal onComplete={() => setShowOnboarding(false)} />}
       <Sidebar activeTool={activeTool} onToolChange={handleToolChange} />
       <ErrorBoundary>

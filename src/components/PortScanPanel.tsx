@@ -5,6 +5,7 @@ import { useToast } from "./ToastProvider";
 import { useMountedRef, runGuarded } from "../hooks/useTestRunner";
 import EmptyState from "./EmptyState";
 import ExportButton from "./ExportButton";
+import PaneHeader from "./PaneHeader";
 
 const PRESETS: { label: string; range: string }[] = [
   { label: "Common Web", range: "80,443,8080,8443" },
@@ -68,7 +69,7 @@ function PortScanPanel() {
 
   return (
     <div className="port-panel">
-      <h2>Port Scanner</h2>
+      <PaneHeader tool="ports" title="Port Scanner" />
 
       <div className="port-input-row">
         <input

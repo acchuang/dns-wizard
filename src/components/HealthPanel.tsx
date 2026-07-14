@@ -4,6 +4,7 @@ import { NetworkInfo, SpeedHistoryEntry, LatencyResult } from "../types";
 import { useSimpleMode } from "./SimpleModeContext";
 import { getHealthGradeClass } from "../utils/grades";
 import SparklineChart from "./SparklineChart";
+import PaneHeader from "./PaneHeader";
 
 interface HealthStatus {
   dns: "good" | "warn" | "bad" | "unknown";
@@ -196,9 +197,7 @@ function HealthPanel({ onNavigate }: { onNavigate: (tool: string) => void }) {
   if (loading) {
     return (
       <div className="dashboard-panel">
-        <div className="dashboard-hero">
-          <h2 style={{ fontSize: 20, fontWeight: 700, color: "var(--text-primary)", margin: 0 }}>Network Dashboard</h2>
-        </div>
+        <PaneHeader tool="health" />
         <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flex: 1, color: "var(--text-tertiary)", fontSize: 13 }}>
           Checking network...
         </div>
@@ -208,6 +207,7 @@ function HealthPanel({ onNavigate }: { onNavigate: (tool: string) => void }) {
 
   return (
     <div className="dashboard-panel">
+      <PaneHeader tool="health" />
       <div className="dashboard-hero">
         <div className="dashboard-grade-ring">
           <svg width="120" height="120" viewBox="0 0 120 120">

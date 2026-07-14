@@ -1,14 +1,22 @@
 /* ===== DNS Wizard Design Tokens ===== */
 /* Light theme (default) */
 :root {
-  --bg-app: #f5f5f7;
-  --bg-sidebar: rgba(255, 255, 255, 0.7);
-  --bg-card: #ffffff;
-  --bg-card-hover: #f0f0f5;
-  --bg-input: #eeeef3;
-  --bg-selected: rgba(0, 122, 255, 0.1);
-  --border: rgba(0, 0, 0, 0.12);
-  --border-strong: rgba(0, 0, 0, 0.2);
+  --bg-app: #e9e5f2;
+  --bg-gradient:
+    radial-gradient(120% 90% at 85% -10%, rgba(125, 196, 239, 0.85) 0%, rgba(125, 196, 239, 0) 55%),
+    radial-gradient(110% 90% at -10% 15%, rgba(248, 178, 168, 0.9) 0%, rgba(248, 178, 168, 0) 55%),
+    radial-gradient(120% 110% at 90% 110%, rgba(186, 160, 238, 0.75) 0%, rgba(186, 160, 238, 0) 60%),
+    linear-gradient(160deg, #f7dcd6 0%, #e4e7f6 60%, #dceef7 100%);
+  --bg-sidebar: rgba(255, 255, 255, 0.42);
+  --bg-card: rgba(255, 255, 255, 0.6);
+  --bg-card-hover: rgba(255, 255, 255, 0.78);
+  --bg-input: rgba(255, 255, 255, 0.55);
+  --bg-selected: rgba(0, 122, 255, 0.12);
+  --row-hover: rgba(255, 255, 255, 0.35);
+  --row-active: rgba(255, 255, 255, 0.6);
+  --border: rgba(90, 85, 120, 0.16);
+  --border-strong: rgba(90, 85, 120, 0.3);
+  --card-glass: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 6px 20px rgba(80, 70, 120, 0.1);
   --text-primary: #1d1d1f;
   --text-secondary: #4a4a50;
   --text-tertiary: #7a7a82;
@@ -22,21 +30,29 @@
   --danger: #d70015;
   --danger-muted: rgba(215, 0, 21, 0.1);
   --coffee: #d06f20;
-  --card-radius: 12px;
-  --tile-radius: 8px;
-  --sidebar-width: 72px;
+  --card-radius: 16px;
+  --tile-radius: 10px;
+  --sidebar-width: 208px;
   --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
 }
 
 [data-theme="dark"] {
-  --bg-app: #0d1117;
-  --bg-sidebar: rgba(22, 27, 34, 0.85);
-  --bg-card: #161b22;
-  --bg-card-hover: #1c2333;
-  --bg-input: #21262d;
+  --bg-app: #10121c;
+  --bg-gradient:
+    radial-gradient(120% 90% at 85% -10%, rgba(64, 105, 170, 0.75) 0%, rgba(64, 105, 170, 0) 55%),
+    radial-gradient(110% 90% at -10% 15%, rgba(168, 78, 105, 0.55) 0%, rgba(168, 78, 105, 0) 55%),
+    radial-gradient(120% 110% at 90% 110%, rgba(112, 84, 180, 0.6) 0%, rgba(112, 84, 180, 0) 60%),
+    linear-gradient(160deg, #191927 0%, #101522 100%);
+  --bg-sidebar: rgba(18, 20, 30, 0.55);
+  --bg-card: rgba(32, 36, 52, 0.62);
+  --bg-card-hover: rgba(44, 49, 68, 0.72);
+  --bg-input: rgba(255, 255, 255, 0.07);
   --bg-selected: rgba(88, 166, 255, 0.15);
-  --border: #3d444d;
-  --border-strong: #545d68;
+  --row-hover: rgba(255, 255, 255, 0.06);
+  --row-active: rgba(255, 255, 255, 0.12);
+  --border: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.22);
+  --card-glass: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 6px 20px rgba(0, 0, 0, 0.35);
   --text-primary: #e6edf3;
   --text-secondary: #b1bac4;
   --text-tertiary: #7d8590;
@@ -56,6 +72,8 @@
 body {
   font-family: var(--font-stack);
   background-color: var(--bg-app);
+  background-image: var(--bg-gradient);
+  background-attachment: fixed;
   color: var(--text-primary);
   font-size: 14px;
   overflow: hidden;

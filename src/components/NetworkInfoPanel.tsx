@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { NetworkInfoResult } from "../types";
 import EmptyState from "./EmptyState";
+import PaneHeader from "./PaneHeader";
 
 function NetworkInfoPanel() {
   const [info, setInfo] = useState<NetworkInfoResult | null>(null);
@@ -50,7 +51,7 @@ function NetworkInfoPanel() {
   if (loading) {
     return (
       <div className="network-panel">
-        <h2>Network Info</h2>
+        <PaneHeader tool="info" title="Network Info" />
         <div className="network-loading">Loading network details...</div>
       </div>
     );
@@ -59,7 +60,7 @@ function NetworkInfoPanel() {
   if (error) {
     return (
       <div className="network-panel">
-        <h2>Network Info</h2>
+        <PaneHeader tool="info" title="Network Info" />
         <p style={{ color: "var(--danger)", fontSize: 13, margin: 0 }}>{error}</p>
         <button className="btn-outline" onClick={loadInfo}>Retry</button>
       </div>
@@ -69,7 +70,7 @@ function NetworkInfoPanel() {
   if (!info) {
     return (
       <div className="network-panel">
-        <h2>Network Info</h2>
+        <PaneHeader tool="info" title="Network Info" />
         <EmptyState icon="ℹ️" title="Network Info" description="Click to load your network details" />
         <button className="btn-accent" onClick={loadInfo}>Load Info</button>
       </div>
@@ -79,7 +80,7 @@ function NetworkInfoPanel() {
   return (
     <div className="network-panel">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h2>Network Info</h2>
+        <PaneHeader tool="info" title="Network Info" />
         <button className="btn-outline" onClick={loadInfo} style={{ fontSize: 11, padding: "4px 12px" }}>Refresh</button>
       </div>
 

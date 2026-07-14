@@ -7,6 +7,7 @@ import EmptyState from "./EmptyState";
 import ResultTable from "./ResultTable";
 import ExportButton from "./ExportButton";
 import Tooltip from "./Tooltip";
+import PaneHeader from "./PaneHeader";
 
 interface Props {
   state: PingState;
@@ -87,9 +88,7 @@ function PingPanel({ state, setState }: Props) {
 
   return (
     <div className="ping-panel">
-      <h2>
-        {state.mode === "ping" ? "Ping" : "Traceroute"}
-      </h2>
+      <PaneHeader tool="ping" title={state.mode === "ping" ? "Ping" : "Traceroute"} />
       <div className="ping-tabs">
         <button className={`ping-tab ${state.mode === "ping" ? "active" : ""}`}
           onClick={() => setState((prev) => ({ ...prev, mode: "ping", results: [], error: null }))}>Ping</button>

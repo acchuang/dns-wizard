@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { Globe, Zap, Radio, SearchCheck, Heart, Info, Eye, EyeOff, Shield, Globe2 } from "lucide-react";
+import { Eye, EyeOff, Info } from "lucide-react";
 import { ActiveTool, PublicIpInfo } from "../types";
+import { toolMeta } from "../toolMeta";
 import { useSimpleMode } from "./SimpleModeContext";
 import { useTheme } from "./ThemeContext";
 
@@ -10,15 +11,30 @@ interface Props {
   onToolChange: (tool: ActiveTool) => void;
 }
 
-const tools: { id: ActiveTool; icon: typeof Globe; label: string }[] = [
-  { id: "dns", icon: Globe, label: "DNS" },
-  { id: "speed", icon: Zap, label: "Speed" },
-  { id: "ping", icon: Radio, label: "Ping" },
-  { id: "leak", icon: SearchCheck, label: "Leak" },
-  { id: "health", icon: Heart, label: "Health" },
-  { id: "ports", icon: Shield, label: "Ports" },
-  { id: "info", icon: Globe2, label: "Info" },
+const sections: { label: string; ids: ActiveTool[] }[] = [
+  { label: "Overview", ids: ["health"] },
+  { label: "Tools", ids: ["dns", "speed", "ping", "leak", "ports"] },
+  { label: "Network", ids: ["info"] },
 ];
+
+function ToolRow({ id, active, onSelect }: { id: ActiveTool; active: boolean; onSelect: () => void }) {
+  const meta = toolMeta[id];
+  const Icon = meta.icon;
+  return (
+    <button
+      className={`sidebar-btn ${active ? "active" : ""}`}
+      onClick={onSelect}
+      title={`${meta.label} (⌘${meta.shortcut})`}
+      aria-label={meta.label}
+      aria-pressed={active}
+    >
+      <span className="sidebar-icon-tile" style={{ background: meta.tint }}>
+        <Icon size={15} />
+      </span>
+      <span className="sidebar-btn-label">{meta.label}</span>
+    </button>
+  );
+}
 
 function Sidebar({ activeTool, onToolChange }: Props) {
   const { simpleMode, toggleSimpleMode } = useSimpleMode();
@@ -42,57 +58,56 @@ function Sidebar({ activeTool, onToolChange }: Props) {
 
   return (
     <div className="sidebar">
-      <div className="sidebar-logo">D</div>
+      <div className="sidebar-header">
+        <div className="sidebar-logo">D</div>
+        <span>DNS Wizard</span>
+      </div>
+      {sections.map((section) => (
+        <div key={section.label}>
+          <div className="sidebar-section-label">{section.label}</div>
+          {section.ids.map((id) => (
+            <ToolRow key={id} id={id} active={activeTool === id} onSelect={() => onToolChange(id)} />
+          ))}
+        </div>
+      ))}
+      <div style={{ flex: 1 }} />
       {ipInfo && (
         <div className="sidebar-ip" title={`IP: ${ipInfo.ip}\nISP: ${ipInfo.isp}\n${ipInfo.city}, ${ipInfo.country}`}>
           <div className="sidebar-ip-label">MY IP</div>
           <div className="sidebar-ip-value">{ipInfo.ip}</div>
         </div>
       )}
-      {tools.map((tool, i) => {
-        const Icon = tool.icon;
-        return (
-          <button
-            key={tool.id}
-            className={`sidebar-btn ${activeTool === tool.id ? 'active' : ''}`}
-            onClick={() => onToolChange(tool.id)}
-            title={`${tool.label} (⌘${i + 1})`}
-            aria-label={tool.label}
-            aria-pressed={activeTool === tool.id}
-          >
-            <Icon size={20} />
-            <span className="sidebar-btn-label">{tool.label}</span>
-          </button>
-        );
-      })}
-      <div style={{ flex: 1 }} />
       <button
         className="sidebar-btn"
-        style={{
-          background: simpleMode ? 'var(--accent-muted)' : 'transparent',
-          color: simpleMode ? 'var(--accent)' : 'var(--text-tertiary)',
-        }}
         onClick={toggleSimpleMode}
         title={simpleMode ? "Show technical details" : "Hide technical details"}
         aria-label={simpleMode ? "Switch to detailed mode" : "Switch to simple mode"}
       >
-        {simpleMode ? <EyeOff size={16} /> : <Eye size={16} />}
+        <span
+          className="sidebar-icon-tile"
+          style={{ background: simpleMode ? "linear-gradient(135deg, #60a5fa, #3b82f6)" : "linear-gradient(135deg, #94a3b8, #64748b)" }}
+        >
+          {simpleMode ? <EyeOff size={15} /> : <Eye size={15} />}
+        </span>
+        <span className="sidebar-btn-label">Simple Mode</span>
+      </button>
+      <button
+        className={`sidebar-btn ${activeTool === "about" ? "active" : ""}`}
+        onClick={() => onToolChange("about")}
+        title="About (⌘8)"
+        aria-label="About"
+        aria-pressed={activeTool === "about"}
+      >
+        <span className="sidebar-icon-tile" style={{ background: toolMeta.about.tint }}>
+          <Info size={15} />
+        </span>
+        <span className="sidebar-btn-label">About</span>
       </button>
       <div className="sidebar-theme-toggle">
         <button className={`sidebar-theme-btn ${theme === 'light' ? 'active' : ''}`} onClick={() => setTheme('light')} title="Light mode">☀️</button>
         <button className={`sidebar-theme-btn ${theme === 'auto' ? 'active' : ''}`} onClick={() => setTheme('auto')} title="Auto mode">🔄</button>
         <button className={`sidebar-theme-btn ${theme === 'dark' ? 'active' : ''}`} onClick={() => setTheme('dark')} title="Dark mode">🌙</button>
       </div>
-      <button
-        className={`sidebar-btn ${activeTool === 'about' ? 'active' : ''}`}
-        onClick={() => onToolChange("about")}
-        title="About (⌘8)"
-        aria-label="About"
-        aria-pressed={activeTool === "about"}
-      >
-        <Info size={20} />
-        <span className="sidebar-btn-label">About</span>
-      </button>
     </div>
   );
 }
