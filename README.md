@@ -23,6 +23,7 @@ DNS Wizard is a noob-friendly, 7-tool network utility suite for macOS. It optimi
 
 ## 🎨 UX niceties
 
+- **🪟 Frosted-glass UI**: translucent settings-style window over a soft mesh-gradient backdrop, with a labeled sidebar grouped into sections and a color-coded icon for every tool.
 - **🔄 Safety Net**: One-click restore to automatic (DHCP) DNS.
 - **👁 Simple mode**: Hides technical numbers and shows plain-English ratings.
 - **🌗 Light/dark/auto themes**, keyboard shortcuts (⌘1–8), and zero telemetry.
