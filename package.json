@@ -1,6 +1,6 @@
 {
   "name": "dns-wizard",
-  "version": "1.3.2",
+  "version": "1.4.0",
   "description": "DNS Wizard — one-click DNS optimization plus a 7-tool network utility suite for macOS: Quick Fix DNS benchmarking, Speed Test, Ping/Traceroute, DNS Leak Test, Dashboard, Port Scanner, and Network Info. Light/dark themes, zero telemetry. Built with Tauri + React + Rust.",
   "type": "module",
   "scripts": {
